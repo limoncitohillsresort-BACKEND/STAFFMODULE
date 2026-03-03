@@ -1,0 +1,278 @@
+{
+  "name": "Guest Auth API",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        544,
+        480
+      ],
+      "id": "df701c20-4511-40dc-8512-2a776ae399f0",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lodgify-sync",
+        "options": {}
+      },
+      "id": "29d18a60-cd08-4f51-8501-9a54a3ce39c5",
+      "name": "Lodgify Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        544,
+        240
+      ],
+      "webhookId": "lodgify-sync-trigger"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.lodgify.com/v2/reservations/bookings/{{ $json.body.resourceId || $json.body.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-ApiKey",
+              "value": "cke7myxECfWHkZLRsTokQZFGB91rz/5+2hHc0zOGBnAcbVLyZRnNgC18nrnYNtSz"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3a28867b-1e64-4f4d-a864-2039f25cfc16",
+      "name": "Fetch Booking Details",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        768,
+        240
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "0B4EuyVKKUTrXq6N",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "documentId": {
+          "__rl": true,
+          "value": "1p0plMOObP2BZgSof0Shkc4QNBV4VvEhn2yMMi9u2c3s",
+          "mode": "list",
+          "cachedResultName": "WEBAPP AUTH-N8N",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p0plMOObP2BZgSof0Shkc4QNBV4VvEhn2yMMi9u2c3s/edit?usp=drivesdk"
+        }
+      },
+      "id": "3eefd5e8-4f36-4a3b-a3d6-84b02477a499",
+      "name": "Update Buffer Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.3,
+      "position": [
+        992,
+        240
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "sJ1l76skCpkWyZ5N",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "guest-auth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b7149136-634b-4ad3-bc06-6170d6d0fb4c",
+      "name": "Auth Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        352,
+        480
+      ],
+      "webhookId": "guest-auth-trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1p0plMOObP2BZgSof0Shkc4QNBV4VvEhn2yMMi9u2c3s",
+          "mode": "list",
+          "cachedResultName": "WEBAPP AUTH-N8N",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p0plMOObP2BZgSof0Shkc4QNBV4VvEhn2yMMi9u2c3s/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p0plMOObP2BZgSof0Shkc4QNBV4VvEhn2yMMi9u2c3s/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "7cca14b7-1356-4e47-acf8-77e76e61f674",
+      "name": "Lookup Booking",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.3,
+      "position": [
+        720,
+        480
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "sJ1l76skCpkWyZ5N",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Get the input from the React App (Webhook)\nlet userInput = {};\ntry {\n    // Try finding the node by your custom name first\n    userInput = $('Auth Webhook1').first().json.body;\n} catch (e) {\n    try {\n        // Fallback: Try standard 'Auth Webhook'\n        userInput = $('Auth Webhook').first().json.body;\n    } catch (e2) {\n        try {\n             // Last resort: Generic 'Webhook'\n             userInput = $('Webhook').first().json.body;\n        } catch (e3) {\n             console.log(\"Warning: Could not find webhook node data.\");\n        }\n    }\n}\n\n// Get clean input values\nconst targetId = (userInput.bookingid || '').toString().trim();\n// We lowercase the name for comparison to be user-friendly (e.g. \"Smith\" matches \"smith\")\nconst targetName = (userInput.lastname || '').toString().trim().toLowerCase();\n\n// 2. Iterate through ALL items from the Google Sheet to find a matching pair\nlet match = null;\n\n// 'items' is the array of rows returned by the Google Sheets node\nfor (const item of items) {\n    const row = item.json;\n    \n    // Get row values safely\n    const rowId = (row.bookingid || '').toString().trim();\n    const rowName = (row.lastname || '').toString().trim().toLowerCase();\n    \n    // COMPARE: Does both the ID and Name match this row?\n    // We use 'includes' for name to handle cases like \"Doe\" matching \"John Doe\"\n    // But for ID we want an exact match.\n    if (rowId === targetId && rowName.includes(targetName) && targetName.length > 0) {\n        match = row;\n        break; // Found it, stop looking\n    }\n}\n\n// 3. Construct Response\nlet response = { \n    valid: false, \n    message: \"Reservation not found\",\n    debug: {\n        targetId,\n        targetName,\n        rowsScanned: items.length\n    }\n};\n\nif (match) {\n    // Optional: Check if cancelled\n    const status = (match.status || '').toLowerCase();\n    \n    if (status === 'cancelled') {\n        response.message = \"This reservation has been cancelled.\";\n    } else {\n        // SUCCESS - Populate guest data for App.jsx\n        response = {\n            valid: true,\n            guest: {\n                name: match.lastname,\n                property: match.property,\n                email: match.email,\n                phone: match.phone,\n                stay: {\n                    start: match.arrival,\n                    end: match.departure,\n                }\n            }\n        };\n    }\n}\n\nreturn [ { json: response } ];"
+      },
+      "id": "3f4d5a02-2479-4fc7-9996-41dabed690e9",
+      "name": "Verify Logic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        944,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "https://guestshop-37qg1j34v-maracuya-backends-projects.vercel.app/"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "730f5ae8-aa84-4ef7-ba96-6305fe455a3a",
+      "name": "Send Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        480
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Respond to Webhook": {
+      "main": [
+        [
+          {
+            "node": "Lookup Booking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lodgify Webhook": {
+      "main": [
+        [
+          {
+            "node": "Fetch Booking Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Booking Details": {
+      "main": [
+        [
+          {
+            "node": "Update Buffer Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lookup Booking": {
+      "main": [
+        [
+          {
+            "node": "Verify Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Logic": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Response": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "W8T76iQwRIvQKaW9"
+  },
+  "versionId": "f99d7798-60d1-44e7-a2c0-e375cc11a8e1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "385597456265c91db1e2f545f1cf268fd3110901ea774cca3f366a1bf553c01e"
+  },
+  "id": "W8T76iQwRIvQKaW9",
+  "tags": []
+}
