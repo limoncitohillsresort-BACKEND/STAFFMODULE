@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { 
-  ChevronRight, 
-  ChevronDown, 
+import {
+  ChevronRight,
+  ChevronDown,
   ChevronLeft,
-  BookOpen, 
-  Search, 
-  Wifi, 
-  WifiOff, 
+  BookOpen,
+  Search,
+  Wifi,
+  WifiOff,
   X,
   Maximize2,
   Save,
@@ -761,11 +761,11 @@ const getPlaceholderImage = (type, width = 600, height = 400) => {
     pool: 'cffafe',
     hurricane: 'ffedd5'
   };
-  
+
   const safeType = (type && typeof type === 'string') ? type : 'default';
   const baseKey = Object.keys(colors).find(k => safeType.startsWith(k)) || safeType;
   const color = colors[safeType] || colors[baseKey] || 'e2e8f0';
-  
+
   return `data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}' viewBox='0 0 ${width} ${height}'%3E%3Crect fill='%23${color}' width='${width}' height='${height}'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='24' fill='%23475569'%3E${safeType.toUpperCase()}%3C/text%3E%3C/svg%3E`;
 };
 
@@ -823,7 +823,7 @@ const CompletionModal = ({ isOpen, onClose }) => {
           <p className="text-xs text-gray-400">
             Check back weekly for new "NEW" flagged items.
           </p>
-          <button 
+          <button
             onClick={onClose}
             className="w-full py-3 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-xl shadow-lg transition-transform transform hover:scale-[1.02]"
           >
@@ -841,15 +841,15 @@ const EntryModal = ({ isOpen, onClose, departments, onSave, onDelete, onMoveUp, 
     id: null,
     deptId: '',
     newDeptTitle: '',
-    catId: '', 
+    catId: '',
     newCatTitle: '',
     title: '',
     summary: '',
     instructions: '',
-    images: [], 
+    images: [],
     requirementsTitle: 'Required Materials',
-    requirements: [], 
-    steps: [], 
+    requirements: [],
+    steps: [],
     enableChecklist: false,
     color: '#e5e7eb'
   });
@@ -947,7 +947,7 @@ const EntryModal = ({ isOpen, onClose, departments, onSave, onDelete, onMoveUp, 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Department</label>
-              <select 
+              <select
                 className="w-full p-2 border rounded-lg bg-gray-50"
                 value={formData.deptId}
                 onChange={e => setFormData({ ...formData, deptId: e.target.value, catId: '' })}
@@ -957,8 +957,8 @@ const EntryModal = ({ isOpen, onClose, departments, onSave, onDelete, onMoveUp, 
                 {!isEditMode && <option value="new">+ Create New Department</option>}
               </select>
               {formData.deptId === 'new' && (
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className="w-full mt-2 p-2 border rounded bg-blue-50 border-blue-200"
                   placeholder="New Department Name"
                   value={formData.newDeptTitle}
@@ -966,10 +966,10 @@ const EntryModal = ({ isOpen, onClose, departments, onSave, onDelete, onMoveUp, 
                 />
               )}
             </div>
-            
+
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Category</label>
-              <select 
+              <select
                 className="w-full p-2 border rounded-lg bg-gray-50"
                 value={formData.catId}
                 onChange={e => setFormData({ ...formData, catId: e.target.value })}
@@ -979,9 +979,9 @@ const EntryModal = ({ isOpen, onClose, departments, onSave, onDelete, onMoveUp, 
                 {categories.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
                 <option value="new">+ Create New Category</option>
               </select>
-               {formData.catId === 'new' && (
-                <input 
-                  type="text" 
+              {formData.catId === 'new' && (
+                <input
+                  type="text"
                   className="w-full mt-2 p-2 border rounded bg-blue-50 border-blue-200"
                   placeholder="New Category Name"
                   value={formData.newCatTitle}
@@ -1009,8 +1009,8 @@ const EntryModal = ({ isOpen, onClose, departments, onSave, onDelete, onMoveUp, 
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Procedure Title</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="w-full p-2 border rounded-lg"
                 placeholder="e.g. Locking the Main Gate"
                 value={formData.title}
@@ -1019,7 +1019,7 @@ const EntryModal = ({ isOpen, onClose, departments, onSave, onDelete, onMoveUp, 
             </div>
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Summary / Context</label>
-              <textarea 
+              <textarea
                 className="w-full p-2 border rounded-lg h-20"
                 placeholder="Why is this task important?"
                 value={formData.summary}
@@ -1033,11 +1033,11 @@ const EntryModal = ({ isOpen, onClose, departments, onSave, onDelete, onMoveUp, 
             <div className="flex gap-2 mb-2 items-center">
               <label className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 cursor-pointer flex items-center gap-2 text-sm">
                 <Upload size={16} /> Upload Image(s)
-                <input 
-                  type="file" 
-                  multiple 
+                <input
+                  type="file"
+                  multiple
                   accept="image/*"
-                  className="hidden" 
+                  className="hidden"
                   onChange={handleFileChange}
                 />
               </label>
@@ -1047,7 +1047,7 @@ const EntryModal = ({ isOpen, onClose, departments, onSave, onDelete, onMoveUp, 
                 {formData.images.map((img, idx) => (
                   <div key={idx} className="relative group">
                     <img src={getPlaceholderImage(img, 64, 40)} className="w-16 h-10 object-cover rounded border" alt="preview" />
-                    <button 
+                    <button
                       onClick={() => removeImage(idx)}
                       className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 shadow-sm hover:bg-red-600"
                     >
@@ -1063,8 +1063,8 @@ const EntryModal = ({ isOpen, onClose, departments, onSave, onDelete, onMoveUp, 
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
               <div className="mb-2">
                 <label className="block text-[10px] font-bold text-yellow-600 uppercase mb-1">List Header</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className="w-full bg-white border border-yellow-200 rounded p-2 text-xs font-bold text-yellow-800 uppercase focus:outline-none focus:ring-1 focus:ring-yellow-400 placeholder-yellow-300"
                   value={formData.requirementsTitle}
                   onChange={e => setFormData({ ...formData, requirementsTitle: e.target.value })}
@@ -1074,12 +1074,12 @@ const EntryModal = ({ isOpen, onClose, departments, onSave, onDelete, onMoveUp, 
               <div className="space-y-2">
                 {formData.requirements.map((req, idx) => (
                   <div key={idx} className="flex gap-2">
-                    <input type="text" placeholder="Item" className="flex-[2] p-1.5 border rounded text-xs" value={req.name} onChange={e => { const n = [...formData.requirements]; n[idx].name = e.target.value; setFormData({...formData, requirements: n}); }} />
-                    <input type="text" placeholder="Qty" className="flex-1 p-1.5 border rounded text-xs" value={req.amount} onChange={e => { const n = [...formData.requirements]; n[idx].amount = e.target.value; setFormData({...formData, requirements: n}); }} />
+                    <input type="text" placeholder="Item" className="flex-[2] p-1.5 border rounded text-xs" value={req.name} onChange={e => { const n = [...formData.requirements]; n[idx].name = e.target.value; setFormData({ ...formData, requirements: n }); }} />
+                    <input type="text" placeholder="Qty" className="flex-1 p-1.5 border rounded text-xs" value={req.amount} onChange={e => { const n = [...formData.requirements]; n[idx].amount = e.target.value; setFormData({ ...formData, requirements: n }); }} />
                     <button onClick={() => setFormData(prev => ({ ...prev, requirements: prev.requirements.filter((_, i) => i !== idx) }))}><Trash2 size={14} className="text-red-400" /></button>
                   </div>
                 ))}
-                <button onClick={() => setFormData(prev => ({ ...prev, requirements: [...prev.requirements, {name: '', amount: ''}] }))} className="text-xs text-blue-600 font-bold flex items-center gap-1 mt-1"><Plus size={14}/> Add Row</button>
+                <button onClick={() => setFormData(prev => ({ ...prev, requirements: [...prev.requirements, { name: '', amount: '' }] }))} className="text-xs text-blue-600 font-bold flex items-center gap-1 mt-1"><Plus size={14} /> Add Row</button>
               </div>
             </div>
 
@@ -1087,7 +1087,7 @@ const EntryModal = ({ isOpen, onClose, departments, onSave, onDelete, onMoveUp, 
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Detailed Instructions</label>
               <div className="relative">
-                <textarea 
+                <textarea
                   className="w-full p-3 border rounded-lg h-32 font-mono text-sm bg-gray-50"
                   placeholder="Detailed instructions (supports Markdown)..."
                   value={formData.instructions}
@@ -1103,11 +1103,11 @@ const EntryModal = ({ isOpen, onClose, departments, onSave, onDelete, onMoveUp, 
                 {formData.steps.map((step, idx) => (
                   <div key={idx} className="flex gap-2 items-start">
                     <span className="text-xs mt-2 text-gray-400">{idx + 1}.</span>
-                    <textarea className="flex-1 p-2 border rounded text-sm h-14" value={step} onChange={e => { const n = [...formData.steps]; n[idx] = e.target.value; setFormData({...formData, steps: n}); }} />
+                    <textarea className="flex-1 p-2 border rounded text-sm h-14" value={step} onChange={e => { const n = [...formData.steps]; n[idx] = e.target.value; setFormData({ ...formData, steps: n }); }} />
                     <button onClick={() => setFormData(prev => ({ ...prev, steps: prev.steps.filter((_, i) => i !== idx) }))} className="mt-2"><Trash2 size={14} className="text-red-400" /></button>
                   </div>
                 ))}
-                <button onClick={() => setFormData(prev => ({ ...prev, steps: [...prev.steps, ''] }))} className="text-xs text-blue-600 font-bold flex items-center gap-1 mt-1"><Plus size={14}/> Add Step</button>
+                <button onClick={() => setFormData(prev => ({ ...prev, steps: [...prev.steps, ''] }))} className="text-xs text-blue-600 font-bold flex items-center gap-1 mt-1"><Plus size={14} /> Add Step</button>
               </div>
             </div>
           </div>
@@ -1121,7 +1121,7 @@ const EntryModal = ({ isOpen, onClose, departments, onSave, onDelete, onMoveUp, 
         <div className="p-4 border-t bg-gray-50 flex justify-between items-center">
           <div className="flex gap-2">
             {isEditMode && onDelete && (
-              <button onClick={() => { if(confirm('Delete this entry?')) { onDelete(formData.id); onClose(); } }} className="text-red-500 hover:text-red-700 text-sm font-bold flex items-center gap-1 px-2 py-1 hover:bg-red-50 rounded">
+              <button onClick={() => { if (confirm('Delete this entry?')) { onDelete(formData.id); onClose(); } }} className="text-red-500 hover:text-red-700 text-sm font-bold flex items-center gap-1 px-2 py-1 hover:bg-red-50 rounded">
                 <Trash2 size={16} /> Delete
               </button>
             )}
@@ -1145,7 +1145,7 @@ const EntryModal = ({ isOpen, onClose, departments, onSave, onDelete, onMoveUp, 
 
 const WeeklyFocusModal = ({ isOpen, onClose, data, onSave }) => {
   const [formData, setFormData] = useState(data);
-  useEffect(() => { if(isOpen) setFormData(data); }, [isOpen, data]);
+  useEffect(() => { if (isOpen) setFormData(data); }, [isOpen, data]);
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -1153,11 +1153,11 @@ const WeeklyFocusModal = ({ isOpen, onClose, data, onSave }) => {
         <h3 className="font-bold text-lg text-gray-800">Edit Weekly Focus</h3>
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Title</label>
-          <input type="text" className="w-full p-2 border rounded" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
+          <input type="text" className="w-full p-2 border rounded" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} />
         </div>
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Message</label>
-          <textarea className="w-full p-2 border rounded h-24" value={formData.text} onChange={e => setFormData({...formData, text: e.target.value})} />
+          <textarea className="w-full p-2 border rounded h-24" value={formData.text} onChange={e => setFormData({ ...formData, text: e.target.value })} />
         </div>
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Color</label>
@@ -1184,7 +1184,7 @@ const ImageModal = ({ src, alt, onClose }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-95 p-2 backdrop-blur-sm" onClick={onClose}>
       <div className="relative w-full max-w-4xl max-h-screen overflow-hidden flex flex-col items-center">
         <div className="absolute top-4 right-4 z-50 flex gap-4">
-           <button onClick={(e) => { e.stopPropagation(); setScale(prev => prev === 1 ? 2.5 : 1); }} className="p-2 bg-white/20 rounded-full text-white backdrop-blur-md"><Maximize2 size={24} /></button>
+          <button onClick={(e) => { e.stopPropagation(); setScale(prev => prev === 1 ? 2.5 : 1); }} className="p-2 bg-white/20 rounded-full text-white backdrop-blur-md"><Maximize2 size={24} /></button>
           <button onClick={onClose} className="p-2 bg-white/20 rounded-full text-white backdrop-blur-md"><X size={24} /></button>
         </div>
         <div className="overflow-auto max-h-[80vh] w-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
@@ -1202,7 +1202,7 @@ const TaskAccordion = ({ item, isOpen, onToggle, isAdmin, onEdit, isTrainingMode
 
   // Ref to scroll into view when opened in training mode
   const taskRef = useRef(null);
-  
+
   useEffect(() => {
     if (isOpen && isTrainingMode && taskRef.current) {
       setTimeout(() => {
@@ -1238,16 +1238,16 @@ const TaskAccordion = ({ item, isOpen, onToggle, isAdmin, onEdit, isTrainingMode
   return (
     <div className="mb-2 last:mb-0" ref={taskRef}>
       <div className="flex items-center gap-1">
-        <button 
+        <button
           onClick={onToggle}
           disabled={isTrainingMode && !isOpen && !isCompleted} // Restrict opening in training mode
           className={`flex-1 text-left p-2 flex items-start gap-2 rounded-lg border-2 border-transparent transition-all duration-200 group
             ${isOpen ? 'bg-white shadow-md z-10' : 'bg-white hover:bg-gray-50'}
             ${isTrainingMode && !isOpen && !isCompleted ? 'opacity-50 cursor-not-allowed' : ''}
           `}
-          style={{ 
-            borderColor: item.color || '#e5e7eb', 
-            borderLeftWidth: '4px' 
+          style={{
+            borderColor: item.color || '#e5e7eb',
+            borderLeftWidth: '4px'
           }}
         >
           <div className="mt-0.5 p-1 rounded-md bg-gray-50 text-gray-400 group-hover:text-blue-500 relative">
@@ -1263,7 +1263,7 @@ const TaskAccordion = ({ item, isOpen, onToggle, isAdmin, onEdit, isTrainingMode
         </button>
 
         {isAdmin && !isTrainingMode && (
-          <button 
+          <button
             onClick={(e) => { e.stopPropagation(); onEdit(item); }}
             className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
           >
@@ -1274,7 +1274,7 @@ const TaskAccordion = ({ item, isOpen, onToggle, isAdmin, onEdit, isTrainingMode
 
       {isOpen && (
         <div className="mt-2 -ml-1 mr-1 p-3 bg-white rounded-lg border border-gray-100 shadow-inner animate-fadeIn relative">
-           <div className="absolute top-[-10px] left-[17px] w-0.5 h-4" style={{ backgroundColor: item.color || '#bfdbfe' }}></div>
+          <div className="absolute top-[-10px] left-[17px] w-0.5 h-4" style={{ backgroundColor: item.color || '#bfdbfe' }}></div>
 
           <p className="text-lg font-bold text-gray-800 mb-4 p-3 rounded-md border-l-2" style={{ backgroundColor: `${item.color}15`, borderColor: item.color || '#bfdbfe' }}>
             {item.content.summary}
@@ -1282,12 +1282,12 @@ const TaskAccordion = ({ item, isOpen, onToggle, isAdmin, onEdit, isTrainingMode
 
           {images.length > 0 && (
             <div className="mb-5 relative group/carousel">
-              <div 
+              <div
                 className="relative w-full aspect-[5/3] bg-gray-100 rounded-lg overflow-hidden cursor-pointer shadow-sm border border-gray-100"
                 onClick={() => setShowImageModal(true)}
               >
-                <img 
-                  src={getPlaceholderImage(images[currentImgIdx])} 
+                <img
+                  src={getPlaceholderImage(images[currentImgIdx])}
                   alt={`${item.title} ${currentImgIdx + 1}`}
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -1348,19 +1348,19 @@ const TaskAccordion = ({ item, isOpen, onToggle, isAdmin, onEdit, isTrainingMode
               )}
             </div>
             {item.content.enableChecklist ? (
-               <div className={`space-y-2 transition-all duration-300 rounded-lg p-3 relative mt-4 border-2 ${isAllStepsChecked ? 'bg-green-50/80 border-green-200' : 'bg-transparent border-transparent'}`}>
-                 {item.content.steps.filter(Boolean).map((step, idx) => {
-                   const isChecked = checkedSteps.has(idx);
-                   return (
-                     <button key={idx} onClick={() => toggleStep(idx)} className={`w-full text-left p-2.5 rounded border shadow-sm flex items-start gap-2.5 transition-all duration-200 ${isChecked ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
-                       <div className={`mt-0.5 flex-shrink-0 transition-colors ${isChecked ? 'text-green-600' : 'text-gray-300'}`}>
-                         {isChecked ? <CheckCircle size={18} className="fill-green-100" /> : <Circle size={18} />}
-                       </div>
-                       <span className={`text-sm leading-relaxed ${isChecked ? 'text-gray-500 line-through decoration-gray-300' : 'text-gray-700'}`}>{step}</span>
-                     </button>
-                   );
-                 })}
-               </div>
+              <div className={`space-y-2 transition-all duration-300 rounded-lg p-3 relative mt-4 border-2 ${isAllStepsChecked ? 'bg-green-50/80 border-green-200' : 'bg-transparent border-transparent'}`}>
+                {item.content.steps.filter(Boolean).map((step, idx) => {
+                  const isChecked = checkedSteps.has(idx);
+                  return (
+                    <button key={idx} onClick={() => toggleStep(idx)} className={`w-full text-left p-2.5 rounded border shadow-sm flex items-start gap-2.5 transition-all duration-200 ${isChecked ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
+                      <div className={`mt-0.5 flex-shrink-0 transition-colors ${isChecked ? 'text-green-600' : 'text-gray-300'}`}>
+                        {isChecked ? <CheckCircle size={18} className="fill-green-100" /> : <Circle size={18} />}
+                      </div>
+                      <span className={`text-sm leading-relaxed ${isChecked ? 'text-gray-500 line-through decoration-gray-300' : 'text-gray-700'}`}>{step}</span>
+                    </button>
+                  );
+                })}
+              </div>
             ) : (
               <ol className="list-decimal list-inside space-y-3 text-sm text-gray-700">
                 {item.content.steps.filter(Boolean).map((step, idx) => (
@@ -1372,19 +1372,19 @@ const TaskAccordion = ({ item, isOpen, onToggle, isAdmin, onEdit, isTrainingMode
 
           {/* TRAINING MODE COMPLETION BUTTON */}
           {isTrainingMode && (
-             <div className="mt-8 pt-4 border-t border-gray-100">
-               <button 
+            <div className="mt-8 pt-4 border-t border-gray-100">
+              <button
                 onClick={onCompleteAndNext}
                 disabled={item.content.enableChecklist && !isAllStepsChecked}
                 className={`w-full py-4 font-bold rounded-lg shadow-md transform transition-all flex items-center justify-center gap-2
-                  ${item.content.enableChecklist && !isAllStepsChecked 
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed scale-100' 
+                  ${item.content.enableChecklist && !isAllStepsChecked
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed scale-100'
                     : 'bg-green-600 hover:bg-green-700 text-white hover:scale-[1.01]'
                   }`}
-               >
-                 <CheckCircle size={24} /> Complete & Continue
-               </button>
-             </div>
+              >
+                <CheckCircle size={24} /> Complete & Continue
+              </button>
+            </div>
           )}
         </div>
       )}
@@ -1398,7 +1398,7 @@ const CategoryItem = ({ category, activeTaskId, onToggleTask, isAdmin, onEdit, i
 
   return (
     <div className="mb-2">
-      <button 
+      <button
         onClick={onToggleCategory}
         className={`flex items-center gap-2 w-full p-2.5 rounded-none border-l-4 transition-all duration-200 text-left ${isExpanded ? 'bg-slate-50 border-blue-500 text-slate-800' : 'border-transparent hover:bg-slate-50 text-slate-600'}`}
       >
@@ -1407,9 +1407,9 @@ const CategoryItem = ({ category, activeTaskId, onToggleTask, isAdmin, onEdit, i
         <div className="flex items-center gap-2">
           {/* Status Badge: Completed or New */}
           {isAllCompleted ? (
-             <CheckCircle size={16} className="text-green-500 fill-green-100" /> 
+            <CheckCircle size={16} className="text-green-500 fill-green-100" />
           ) : (
-             <span className="text-[10px] font-bold bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded border border-orange-200">NEW</span>
+            <span className="text-[10px] font-bold bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded border border-orange-200">NEW</span>
           )}
           <span className="text-xs font-semibold bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">{category.items.length}</span>
           {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
@@ -1418,9 +1418,9 @@ const CategoryItem = ({ category, activeTaskId, onToggleTask, isAdmin, onEdit, i
       {isExpanded && (
         <div className="relative mt-1 ml-1 pl-2 border-l border-slate-300 space-y-2">
           {category.items.map(task => (
-            <TaskAccordion 
-              key={task.id} 
-              item={task} 
+            <TaskAccordion
+              key={task.id}
+              item={task}
               isOpen={activeTaskId === task.id}
               onToggle={() => onToggleTask(task.id)}
               isAdmin={isAdmin}
@@ -1437,7 +1437,7 @@ const CategoryItem = ({ category, activeTaskId, onToggleTask, isAdmin, onEdit, i
 };
 
 const DepartmentItem = ({ dept, isExpanded, onToggle, isAdmin, onEdit, isTrainingMode, completedTasks, activeTaskId, onToggleTask, onCompleteAndNext, activeCatId, onToggleCat }) => {
-  const Icon = { 
+  const Icon = {
     Briefcase, Utensils, Coffee, Wrench, Heart, Truck, Sun, Droplet, AlertTriangle, Users, ShieldCheck
   }[dept.icon] || ShieldCheck;
 
@@ -1448,16 +1448,16 @@ const DepartmentItem = ({ dept, isExpanded, onToggle, isAdmin, onEdit, isTrainin
   const deptRef = useRef(null);
   useEffect(() => {
     if (isTrainingMode && isExpanded && deptRef.current) {
-        setTimeout(() => {
-          scrollToElement(deptRef);
-        }, 100);
+      setTimeout(() => {
+        scrollToElement(deptRef);
+      }, 100);
     }
   }, [isExpanded, isTrainingMode]);
 
 
   return (
     <div className="mb-4" ref={deptRef}>
-      <button 
+      <button
         onClick={onToggle}
         className={`w-full p-3 rounded-xl flex items-center gap-3 transition-all duration-300 border ${isExpanded ? 'bg-blue-900 text-white shadow-lg border-blue-900 ring-2 ring-blue-100 ring-offset-2' : 'bg-white text-gray-800 shadow-sm border-gray-100 hover:bg-gray-50 hover:border-gray-200'}`}
       >
@@ -1465,9 +1465,9 @@ const DepartmentItem = ({ dept, isExpanded, onToggle, isAdmin, onEdit, isTrainin
         <span className="text-lg font-bold tracking-tight">{dept.title}</span>
         <div className="ml-auto flex items-center gap-3 opacity-90">
           {isAllCompleted ? (
-            <div className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1"><CheckCircle size={12}/> Done</div>
+            <div className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1"><CheckCircle size={12} /> Done</div>
           ) : (
-            <div className="bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1"><AlertCircle size={12}/> NEW</div>
+            <div className="bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1"><AlertCircle size={12} /> NEW</div>
           )}
           {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
         </div>
@@ -1476,10 +1476,10 @@ const DepartmentItem = ({ dept, isExpanded, onToggle, isAdmin, onEdit, isTrainin
       {isExpanded && (
         <div className="animate-slideDown pt-2 pb-1">
           {dept.children.map(category => (
-            <CategoryItem 
-              key={category.id} 
-              category={category} 
-              activeTaskId={activeTaskId} 
+            <CategoryItem
+              key={category.id}
+              category={category}
+              activeTaskId={activeTaskId}
               onToggleTask={(taskId) => onToggleTask(taskId)}
               isAdmin={isAdmin}
               onEdit={onEdit}
@@ -1503,16 +1503,16 @@ const CompactProgressBar = ({ progress, totalTasks, completedCount }) => (
       <Award size={18} />
     </div>
     <div className="flex-1 flex flex-col justify-center">
-       <div className="flex justify-between text-[10px] uppercase font-bold text-blue-200 mb-1">
-          <span>Training Progress</span>
-          <span>{Math.round(progress)}%</span>
-        </div>
-        <div className="w-full h-1.5 bg-blue-900/50 rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-green-400 transition-all duration-700 ease-out" 
-            style={{ width: `${progress}%` }} 
-          />
-        </div>
+      <div className="flex justify-between text-[10px] uppercase font-bold text-blue-200 mb-1">
+        <span>Training Progress</span>
+        <span>{Math.round(progress)}%</span>
+      </div>
+      <div className="w-full h-1.5 bg-blue-900/50 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-green-400 transition-all duration-700 ease-out"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
     </div>
   </div>
 );
@@ -1523,12 +1523,12 @@ const NotificationMenu = ({ uncompletedTasks, onSelect, onClose }) => (
     <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden animate-fadeIn flex flex-col max-h-[80vh] border border-gray-100">
       <div className="bg-slate-50 border-b p-4 flex justify-between items-center shrink-0">
         <h3 className="font-bold text-lg text-slate-800">Pending Training ({uncompletedTasks.length})</h3>
-        <button onClick={onClose} className="p-1.5 hover:bg-slate-200 rounded-full transition-colors"><X size={20} className="text-slate-500"/></button>
+        <button onClick={onClose} className="p-1.5 hover:bg-slate-200 rounded-full transition-colors"><X size={20} className="text-slate-500" /></button>
       </div>
       <div className="overflow-y-auto">
         {uncompletedTasks.length > 0 ? (
           uncompletedTasks.map((task) => (
-            <button 
+            <button
               key={task.id}
               onClick={() => onSelect(task)}
               className="w-full text-left p-4 hover:bg-blue-50 border-b border-gray-50 flex items-start gap-4 transition-colors last:border-0 active:bg-blue-100"
@@ -1543,7 +1543,7 @@ const NotificationMenu = ({ uncompletedTasks, onSelect, onClose }) => (
         ) : (
           <div className="p-10 text-center text-slate-400 text-sm flex flex-col items-center gap-4">
             <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center border border-green-100">
-                <CheckCircle size={32} className="text-green-500" />
+              <CheckCircle size={32} className="text-green-500" />
             </div>
             <p className="font-medium text-slate-600">All training modules complete!</p>
           </div>
@@ -1553,25 +1553,25 @@ const NotificationMenu = ({ uncompletedTasks, onSelect, onClose }) => (
   </div>
 );
 
-const TrainingPortal = ({ user = { role: 'manager', isAdmin: true } }) => {
+const TrainingPortal = ({ user = { role: 'manager', isAdmin: true }, onBack }) => {
   const [data, setData] = useState([]);
-  const [activeDeptId, setActiveDeptId] = useState(null); 
+  const [activeDeptId, setActiveDeptId] = useState(null);
   // Add active Category State for stricter control in Training Mode
   const [activeCatId, setActiveCatId] = useState(null);
   // Add active Task State for stricter control
   const [activeTaskId, setActiveTaskId] = useState(null);
-  
+
   const [weeklyFocus, setWeeklyFocus] = useState(INITIAL_WEEKLY_FOCUS);
   const [searchQuery, setSearchQuery] = useState('');
   const [isOnline, setIsOnline] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Training Mode State
   const [isTrainingMode, setIsTrainingMode] = useState(false);
   const [completedTasks, setCompletedTasks] = useState(new Set());
   const [dismissedTaskIds, setDismissedTaskIds] = useState(new Set());
   const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
-  
+
   // Notifications
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
@@ -1584,7 +1584,7 @@ const TrainingPortal = ({ user = { role: 'manager', isAdmin: true } }) => {
   useEffect(() => {
     const loadData = async () => {
       await new Promise(resolve => setTimeout(resolve, 600));
-      const cached = localStorage.getItem('training_data_maracuya_v2'); 
+      const cached = localStorage.getItem('training_data_maracuya_v2');
       const cachedFocus = localStorage.getItem('weekly_focus_maracuya_v2');
       const cachedCompleted = localStorage.getItem('completed_tasks_maracuya');
 
@@ -1612,7 +1612,7 @@ const TrainingPortal = ({ user = { role: 'manager', isAdmin: true } }) => {
   const toggleTrainingMode = () => {
     const newMode = !isTrainingMode;
     setIsTrainingMode(newMode);
-    
+
     // If turning on, reset view to first uncompleted task or clean state
     if (newMode) {
       // Find first uncompleted task that hasn't been dismissed or completed
@@ -1636,9 +1636,9 @@ const TrainingPortal = ({ user = { role: 'manager', isAdmin: true } }) => {
   const handleNotificationClick = (task) => {
     // Add to dismissed set to remove from menu immediately
     setDismissedTaskIds(prev => {
-        const next = new Set(prev);
-        next.add(task.id);
-        return next;
+      const next = new Set(prev);
+      next.add(task.id);
+      return next;
     });
 
     setIsNotificationOpen(false);
@@ -1661,16 +1661,16 @@ const TrainingPortal = ({ user = { role: 'manager', isAdmin: true } }) => {
       const nextTask = flatTasks[currentIndex + 1];
 
       // 3. Smooth transition logic
-      
+
       // If Department changes:
       if (nextTask.deptId !== activeDeptId) {
         setActiveDeptId(null); // Briefly close to trigger animation
         setTimeout(() => {
-            setActiveDeptId(nextTask.deptId);
-            setActiveCatId(nextTask.catId);
-            setActiveTaskId(nextTask.id);
+          setActiveDeptId(nextTask.deptId);
+          setActiveCatId(nextTask.catId);
+          setActiveTaskId(nextTask.id);
         }, 400); // Wait for close animation
-      } 
+      }
       // If Category changes but Dept is same:
       else if (nextTask.catId !== activeCatId) {
         setActiveCatId(null); // Close current category
@@ -1678,7 +1678,7 @@ const TrainingPortal = ({ user = { role: 'manager', isAdmin: true } }) => {
           setActiveCatId(nextTask.catId);
           setActiveTaskId(nextTask.id);
         }, 300);
-      } 
+      }
       // Just Task changes
       else {
         setActiveTaskId(nextTask.id);
@@ -1695,49 +1695,49 @@ const TrainingPortal = ({ user = { role: 'manager', isAdmin: true } }) => {
     const newData = [...data];
     let deptIndex = -1;
     if (formData.deptId === 'new') {
-        const newDept = { id: `dept_${Date.now()}`, title: formData.newDeptTitle || 'New Dept', icon: 'Briefcase', type: 'department', children: [] };
-        newData.push(newDept);
-        deptIndex = newData.length - 1;
-        formData.deptId = newDept.id;
+      const newDept = { id: `dept_${Date.now()}`, title: formData.newDeptTitle || 'New Dept', icon: 'Briefcase', type: 'department', children: [] };
+      newData.push(newDept);
+      deptIndex = newData.length - 1;
+      formData.deptId = newDept.id;
     } else {
-        deptIndex = newData.findIndex(d => d.id === formData.deptId);
+      deptIndex = newData.findIndex(d => d.id === formData.deptId);
     }
     if (deptIndex === -1) return;
     let dept = { ...newData[deptIndex] };
     let catId = formData.catId;
     if (catId === 'new') {
-        const newCat = { id: `cat_${Date.now()}`, title: formData.newCatTitle || 'New Cat', type: 'category', items: [] };
-        dept.children = [...dept.children, newCat];
-        catId = newCat.id;
+      const newCat = { id: `cat_${Date.now()}`, title: formData.newCatTitle || 'New Cat', type: 'category', items: [] };
+      dept.children = [...dept.children, newCat];
+      catId = newCat.id;
     }
     const catIndex = dept.children.findIndex(c => c.id === catId);
     if (catIndex > -1) {
-        const cat = { ...dept.children[catIndex] };
-        const newEntry = {
-            id: formData.id || `task_${Date.now()}`,
-            title: formData.title,
-            lastUpdated: new Date().toISOString().split('T')[0],
-            images: formData.images,
-            color: formData.color,
-            content: {
-                summary: formData.summary,
-                instructions: formData.instructions,
-                enableChecklist: formData.enableChecklist,
-                requirementsTitle: formData.requirementsTitle,
-                requirements: formData.requirements.filter(r => r.name),
-                steps: formData.steps.filter(Boolean)
-            }
-        };
-        if (formData.id) {
-            const itemIdx = cat.items.findIndex(i => i.id === formData.id);
-            if (itemIdx > -1) cat.items[itemIdx] = newEntry;
-        } else {
-            cat.items = [newEntry, ...cat.items];
+      const cat = { ...dept.children[catIndex] };
+      const newEntry = {
+        id: formData.id || `task_${Date.now()}`,
+        title: formData.title,
+        lastUpdated: new Date().toISOString().split('T')[0],
+        images: formData.images,
+        color: formData.color,
+        content: {
+          summary: formData.summary,
+          instructions: formData.instructions,
+          enableChecklist: formData.enableChecklist,
+          requirementsTitle: formData.requirementsTitle,
+          requirements: formData.requirements.filter(r => r.name),
+          steps: formData.steps.filter(Boolean)
         }
-        dept.children[catIndex] = cat;
-        newData[deptIndex] = dept;
-        setData(newData);
-        localStorage.setItem('training_data_maracuya_v2', JSON.stringify(newData));
+      };
+      if (formData.id) {
+        const itemIdx = cat.items.findIndex(i => i.id === formData.id);
+        if (itemIdx > -1) cat.items[itemIdx] = newEntry;
+      } else {
+        cat.items = [newEntry, ...cat.items];
+      }
+      dept.children[catIndex] = cat;
+      newData[deptIndex] = dept;
+      setData(newData);
+      localStorage.setItem('training_data_maracuya_v2', JSON.stringify(newData));
     }
   };
 
@@ -1783,8 +1783,8 @@ const TrainingPortal = ({ user = { role: 'manager', isAdmin: true } }) => {
     const lowerQuery = searchQuery.toLowerCase();
     return data.map(dept => {
       const matchingChildren = dept.children.map(cat => {
-        const matchingItems = cat.items.filter(item => 
-          item.title.toLowerCase().includes(lowerQuery) || 
+        const matchingItems = cat.items.filter(item =>
+          item.title.toLowerCase().includes(lowerQuery) ||
           item.content.summary.toLowerCase().includes(lowerQuery)
         );
         if (matchingItems.length > 0) return { ...cat, items: matchingItems };
@@ -1803,6 +1803,15 @@ const TrainingPortal = ({ user = { role: 'manager', isAdmin: true } }) => {
       <header className="bg-blue-900 text-white sticky top-0 z-40 shadow-lg transition-all duration-300">
         <div className="max-w-3xl mx-auto px-4 py-3">
           <div className="flex items-center gap-3">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="p-1.5 mr-2 bg-blue-800 hover:bg-blue-700 rounded-full text-blue-200 hover:text-white transition-colors flex-shrink-0"
+                title="Back"
+              >
+                <ChevronLeft size={20} />
+              </button>
+            )}
             {/* LOGO */}
             <div className="flex items-center gap-2 flex-shrink-0">
               <div className="p-1.5 bg-blue-800 rounded-lg"><BookOpen size={20} className="text-blue-200" /></div>
@@ -1814,19 +1823,19 @@ const TrainingPortal = ({ user = { role: 'manager', isAdmin: true } }) => {
 
             {/* MIDDLE: SEARCH OR PROGRESS */}
             {isTrainingMode ? (
-              <CompactProgressBar 
-                progress={progress} 
-                totalTasks={flatTasks.length} 
-                completedCount={completedTasks.size} 
+              <CompactProgressBar
+                progress={progress}
+                totalTasks={flatTasks.length}
+                completedCount={completedTasks.size}
               />
             ) : (
               <div className="relative flex-1">
-                <input 
-                  type="text" 
-                  placeholder="Search..." 
-                  value={searchQuery} 
-                  onChange={(e) => setSearchQuery(e.target.value)} 
-                  className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-blue-800/50 border border-blue-700 text-white text-sm placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-blue-800 transition-all h-12" 
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-blue-800/50 border border-blue-700 text-white text-sm placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-blue-800 transition-all h-12"
                 />
                 <Search className="absolute left-3 top-3.5 text-blue-300" size={16} />
                 {searchQuery && <button onClick={() => setSearchQuery('')} className="absolute right-3 top-3.5 text-blue-300 hover:text-white"><X size={16} /></button>}
@@ -1835,50 +1844,50 @@ const TrainingPortal = ({ user = { role: 'manager', isAdmin: true } }) => {
 
             {/* RIGHT CONTROLS */}
             <div className="flex items-center gap-3 flex-shrink-0 ml-1">
-               
-               {/* NOTIFICATION BELL */}
-               <div className="relative">
-                 <button 
-                   onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                   className="relative p-2 rounded-full hover:bg-blue-800 transition-colors"
-                 >
-                   <Bell size={20} className="text-blue-200" />
-                   {uncompletedTasks.length > 0 && (
-                     <div className="absolute top-1 right-1 w-4 h-4 bg-orange-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-blue-900 shadow-sm">
-                       {uncompletedTasks.length > 9 ? '9+' : uncompletedTasks.length}
-                     </div>
-                   )}
-                 </button>
-                 {isNotificationOpen && (
-                   <NotificationMenu 
-                     uncompletedTasks={uncompletedTasks} 
-                     onSelect={handleNotificationClick}
-                     onClose={() => setIsNotificationOpen(false)}
-                   />
-                 )}
-               </div>
 
-               {/* ROCKER SWITCH */}
-               <div className="flex items-center gap-2 bg-blue-800/50 p-1.5 rounded-full border border-blue-700 h-10">
-                 <span className={`text-[10px] font-bold uppercase px-1 ${!isTrainingMode ? 'text-white' : 'text-blue-300'}`}>Work</span>
-                 <button 
+              {/* NOTIFICATION BELL */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                  className="relative p-2 rounded-full hover:bg-blue-800 transition-colors"
+                >
+                  <Bell size={20} className="text-blue-200" />
+                  {uncompletedTasks.length > 0 && (
+                    <div className="absolute top-1 right-1 w-4 h-4 bg-orange-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-blue-900 shadow-sm">
+                      {uncompletedTasks.length > 9 ? '9+' : uncompletedTasks.length}
+                    </div>
+                  )}
+                </button>
+                {isNotificationOpen && (
+                  <NotificationMenu
+                    uncompletedTasks={uncompletedTasks}
+                    onSelect={handleNotificationClick}
+                    onClose={() => setIsNotificationOpen(false)}
+                  />
+                )}
+              </div>
+
+              {/* ROCKER SWITCH */}
+              <div className="flex items-center gap-2 bg-blue-800/50 p-1.5 rounded-full border border-blue-700 h-10">
+                <span className={`text-[10px] font-bold uppercase px-1 ${!isTrainingMode ? 'text-white' : 'text-blue-300'}`}>Work</span>
+                <button
                   onClick={toggleTrainingMode}
                   className={`relative w-10 h-5 rounded-full transition-colors duration-300 focus:outline-none ${isTrainingMode ? 'bg-green-500' : 'bg-gray-400'}`}
-                 >
-                   <div className={`absolute top-1 left-1 bg-white w-3 h-3 rounded-full shadow-sm transition-transform duration-300 ${isTrainingMode ? 'translate-x-5' : 'translate-x-0'}`} />
-                 </button>
-                 <span className={`text-[10px] font-bold uppercase px-1 ${isTrainingMode ? 'text-green-300' : 'text-blue-300'}`}>Train</span>
-               </div>
-               
-               {/* ADD SOP BUTTON (REPLACES WIFI) */}
-               {isAdmin && !isTrainingMode && (
-                 <button 
-                  onClick={openAddModal} 
+                >
+                  <div className={`absolute top-1 left-1 bg-white w-3 h-3 rounded-full shadow-sm transition-transform duration-300 ${isTrainingMode ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
+                <span className={`text-[10px] font-bold uppercase px-1 ${isTrainingMode ? 'text-green-300' : 'text-blue-300'}`}>Train</span>
+              </div>
+
+              {/* ADD SOP BUTTON (REPLACES WIFI) */}
+              {isAdmin && !isTrainingMode && (
+                <button
+                  onClick={openAddModal}
                   className="bg-blue-500 hover:bg-blue-400 text-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center transition-colors"
-                 >
-                   <Plus size={20} />
-                 </button>
-               )}
+                >
+                  <Plus size={20} />
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -1900,15 +1909,15 @@ const TrainingPortal = ({ user = { role: 'manager', isAdmin: true } }) => {
         <div className="space-y-4">
           {filteredData.length > 0 ? (
             filteredData.map(dept => (
-              <DepartmentItem 
-                key={dept.id} 
-                dept={dept} 
+              <DepartmentItem
+                key={dept.id}
+                dept={dept}
                 isExpanded={isTrainingMode ? (activeDeptId === dept.id) : (activeDeptId === dept.id)}
                 onToggle={() => {
                   if (!isTrainingMode) {
-                     setActiveDeptId(prev => prev === dept.id ? null : dept.id);
+                    setActiveDeptId(prev => prev === dept.id ? null : dept.id);
                   } else {
-                     setActiveDeptId(prev => prev === dept.id ? null : dept.id);
+                    setActiveDeptId(prev => prev === dept.id ? null : dept.id);
                   }
                 }}
                 isAdmin={isAdmin}
@@ -1917,11 +1926,11 @@ const TrainingPortal = ({ user = { role: 'manager', isAdmin: true } }) => {
                 completedTasks={completedTasks}
                 activeTaskId={activeTaskId}
                 onToggleTask={(id) => {
-                   if (isTrainingMode) {
-                     setActiveTaskId(prev => prev === id ? null : id);
-                   } else {
-                     setActiveTaskId(prev => prev === id ? null : id);
-                   }
+                  if (isTrainingMode) {
+                    setActiveTaskId(prev => prev === id ? null : id);
+                  } else {
+                    setActiveTaskId(prev => prev === id ? null : id);
+                  }
                 }}
                 onCompleteAndNext={handleCompleteAndNext}
                 activeCatId={activeCatId}
@@ -1939,17 +1948,17 @@ const TrainingPortal = ({ user = { role: 'manager', isAdmin: true } }) => {
         </div>
       </main>
 
-      <EntryModal 
-        isOpen={isEntryModalOpen} 
-        onClose={() => setIsEntryModalOpen(false)} 
-        departments={data} 
+      <EntryModal
+        isOpen={isEntryModalOpen}
+        onClose={() => setIsEntryModalOpen(false)}
+        departments={data}
         onSave={handleSaveEntry}
         onDelete={handleDeleteEntry}
         onMoveUp={handleMoveUpEntry}
         initialData={entryToEdit}
       />
 
-      <WeeklyFocusModal 
+      <WeeklyFocusModal
         isOpen={isFocusModalOpen}
         onClose={() => setIsFocusModalOpen(false)}
         data={weeklyFocus}

@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./index.css";
+import TestModeWidget from "./components/TestModeWidget.jsx";
 
 const AdminApp = lazy(() => import("./admin/AdminApp.jsx"));
 const StaffApp = lazy(() => import("./staff/StaffApp.jsx"));
@@ -21,6 +22,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                {/* Catch-all sends you back to Admin */}
                <Route path="*" element={<Navigate to="/admin" replace />} />
             </Routes>
+            <TestModeWidget />
          </Suspense>
       </BrowserRouter>
    </React.StrictMode>

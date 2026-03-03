@@ -98,7 +98,7 @@ const STAFF_ROSTER = ["Ivan", "Maria", "Carlos", "Sarah", "Maintenance Team A"];
 
 const createCondition = (text: string) => [{ id: 'init', timestamp: Date.now(), text, author: 'System' }];
 
-const INITIAL_INVENTORY: Tool[] = [
+export const INITIAL_INVENTORY: Tool[] = [
   { id: 'e1', name: 'Makita Impact Driver', dept: 'Engineering', icon: Wrench, iconName: 'Wrench', totalQty: 10, available: 8, isConsumable: false, unit: 'pcs', value: 150, location: 'A-1', conditionHistory: createCondition('Scratches on handle, battery holds 80%'), rating: 4, description: '18V Cordless Impact Driver', color: '#3b82f6' },
   { id: 'e2', name: 'Fluke Multimeter', dept: 'Engineering', icon: Zap, iconName: 'Zap', totalQty: 5, available: 2, isConsumable: false, unit: 'pcs', value: 200, location: 'A-2', conditionHistory: createCondition('Good condition'), rating: 5, description: 'Digital Multimeter for electrical testing', color: '#eab308' },
   { id: 'e3', name: 'PVC Glue (Clear)', dept: 'Engineering', icon: Droplet, iconName: 'Droplet', totalQty: 20, available: 15, isConsumable: true, unit: 'cans', value: 12, location: 'C-5', conditionHistory: [], rating: 5, description: 'Standard PVC Cement', color: '#ffffff' },
@@ -124,7 +124,7 @@ const StarRating = ({ rating, size = 14 }: { rating: number, size?: number }) =>
 
 const LogsModal = ({ logs, onClose }: { logs: LogEntry[], onClose: () => void }) => {
   const [filterStaff, setFilterStaff] = useState('All');
-  const [viewingLog, setViewingLog] = useState < LogEntry | null > (null);
+  const [viewingLog, setViewingLog] = useState<LogEntry | null>(null);
   const displayLogs = logs.filter(l => filterStaff === 'All' || l.staffName === filterStaff);
 
   return (
@@ -154,7 +154,7 @@ const LogsModal = ({ logs, onClose }: { logs: LogEntry[], onClose: () => void })
               <div className="flex justify-between mb-2 pointer-events-none">
                 <div className="flex items-center gap-2">
                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${log.type === 'checkout' ? 'bg-blue-100 text-blue-700' :
-                      log.totalLiability && log.totalLiability > 0 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
+                    log.totalLiability && log.totalLiability > 0 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
                     }`}>
                     {log.type === 'return' && log.totalLiability ? 'Missing Items' : log.type}
                   </span>
@@ -221,7 +221,7 @@ const LogsModal = ({ logs, onClose }: { logs: LogEntry[], onClose: () => void })
                     <div
                       key={i}
                       className={`flex justify-between mb-2 p-2 rounded ${item.status === 'missing' ? 'border-2 border-red-500 bg-red-50/50' :
-                          item.status === 'recovered' ? 'border-2 border-blue-500 bg-blue-50/50' : ''
+                        item.status === 'recovered' ? 'border-2 border-blue-500 bg-blue-50/50' : ''
                         }`}
                     >
                       <div className="flex flex-col">
@@ -277,7 +277,7 @@ const LogsModal = ({ logs, onClose }: { logs: LogEntry[], onClose: () => void })
 };
 
 const SignaturePad = ({ onChange, isRequired }: { onChange: (signature: string | null) => void, isRequired: boolean }) => {
-  const canvasRef = useRef < HTMLCanvasElement > (null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hasContent, setHasContent] = useState(false);
 
   const startDrawing = (e: any) => {
@@ -355,7 +355,7 @@ const SignaturePad = ({ onChange, isRequired }: { onChange: (signature: string |
 };
 
 const InventoryCard = ({ item, quantityInCart, onIncrement, onReset, onViewDetails, appMode }: any) => {
-  const timerRef = useRef < any > (null);
+  const timerRef = useRef<any>(null);
   const [isPressing, setIsPressing] = useState(false);
   const isSelected = quantityInCart > 0;
 
@@ -418,7 +418,7 @@ const InventoryCard = ({ item, quantityInCart, onIncrement, onReset, onViewDetai
 };
 
 const ItemFormModal = ({ item, onSave, onClose, isEdit }: { item?: Tool, onSave: (item: Tool) => void, onClose: () => void, isEdit?: boolean }) => {
-  const [formData, setFormData] = useState < Partial < Tool >> (item || {
+  const [formData, setFormData] = useState<Partial<Tool>>(item || {
     name: '', dept: 'Engineering', iconName: 'Wrench', totalQty: 1, available: 1, isConsumable: false, unit: 'pcs', value: 0, location: 'A-1', conditionHistory: [], rating: 5, description: '', color: '#ffffff'
   });
 
@@ -561,31 +561,31 @@ const ItemFormModal = ({ item, onSave, onClose, isEdit }: { item?: Tool, onSave:
 
 // --- Main Component ---
 
-export default function ResortToolCheckout() {
-  const [activeTab, setActiveTab] = useState < Department > ('Engineering');
-  const [appMode, setAppMode] = useState < AppMode > ('checkout');
+export default function ResortToolCheckout({ onBack }: { onBack?: () => void }) {
+  const [activeTab, setActiveTab] = useState<Department>('Engineering');
+  const [appMode, setAppMode] = useState<AppMode>('checkout');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
 
   // -- Data Stores --
-  const [inventory, setInventory] = useState < Tool[] > (INITIAL_INVENTORY);
-  const [logs, setLogs] = useState < LogEntry[] > ([]);
-  const [activeSessions, setActiveSessions] = useState < ActiveSession[] > ([]);
-  const [lostRegistry, setLostRegistry] = useState < LostRegistryItem[] > ([]);
+  const [inventory, setInventory] = useState<Tool[]>(INITIAL_INVENTORY);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
+  const [lostRegistry, setLostRegistry] = useState<LostRegistryItem[]>([]);
 
   // -- Transaction State --
-  const [cart, setCart] = useState < Record < string, number>> ({});
+  const [cart, setCart] = useState<Record<string, number>>({});
   const [selectedStaff, setSelectedStaff] = useState('');
 
   // -- UI State --
-  const [selectedForDetail, setSelectedForDetail] = useState < Tool | null > (null);
+  const [selectedForDetail, setSelectedForDetail] = useState<Tool | null>(null);
   const [showLogsModal, setShowLogsModal] = useState(false);
-  const [step, setStep] = useState < 'shop' | 'verify' | 'receipt' > ('shop');
-  const [currentSignature, setCurrentSignature] = useState < string | null > (null);
+  const [step, setStep] = useState<'shop' | 'verify' | 'receipt'>('shop');
+  const [currentSignature, setCurrentSignature] = useState<string | null>(null);
 
   // -- Modal State for Add/Edit --
   const [showItemModal, setShowItemModal] = useState(false);
-  const [editingItem, setEditingItem] = useState < Tool | null > (null);
+  const [editingItem, setEditingItem] = useState<Tool | null>(null);
 
   // -- Computed --
   const filteredItems = useMemo(() => inventory.filter(i => i.dept === activeTab && i.name.toLowerCase().includes(search.toLowerCase())), [activeTab, search, inventory]);
@@ -898,9 +898,20 @@ export default function ResortToolCheckout() {
 
       <header className="bg-slate-900 text-white p-4 pb-2 shadow-md shrink-0">
         <div className="flex justify-between items-start mb-4">
-          <div>
-            <h1 className="text-lg font-bold leading-none">Resort Ops</h1>
-            <p className="text-xs text-slate-400">Inventory Control</p>
+          <div className="flex items-center gap-3">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-full text-slate-300 hover:text-white transition-colors"
+                title="Back to Dashboard"
+              >
+                <ChevronLeft size={20} />
+              </button>
+            )}
+            <div>
+              <h1 className="text-lg font-bold leading-none">Resort Ops</h1>
+              <p className="text-xs text-slate-400">Inventory Control</p>
+            </div>
           </div>
 
           <div className="flex gap-2 items-center">

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { CheckCircle, AlertTriangle, Clipboard, Book, Home, ChevronDown, ChevronRight, Droplets, Zap, Armchair, Hammer, Utensils, Save, Printer } from 'lucide-react';
+import { CheckCircle, AlertTriangle, Clipboard, Book, Home, ChevronDown, ChevronRight, Droplets, Zap, Armchair, Hammer, Utensils, Save, Printer, ChevronLeft, Plus, Image as ImageIcon, X } from 'lucide-react';
+import { INITIAL_INVENTORY } from './moduleToolCheckout';
 
 // --- DATA CONFIGURATION ---
 
@@ -124,10 +125,70 @@ const sopDatabase = [
 
 // --- APP COMPONENT ---
 
-export default function MaintenanceApp() {
+const AddEntryModal = ({ isOpen, onClose, onSave, categories }: any) => {
+  const [category, setCategory] = useState(categories[0] || 'NEW');
+  const [newCategory, setNewCategory] = useState('');
+  const [label, setLabel] = useState('');
+  const [instruction, setInstruction] = useState('');
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-slate-900/80 flex items-center justify-center p-4">
+      <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
+        <div className="bg-slate-900 p-4 text-white flex justify-between items-center">
+          <h2 className="font-bold">Add Checklist Entry</h2>
+          <button onClick={onClose} className="hover:text-red-400"><X size={20} /></button>
+        </div>
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Category</label>
+            <select
+              className="w-full p-2 border border-slate-200 focus:border-blue-500 outline-none rounded"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              {categories.map((c: string) => <option key={c} value={c}>{c}</option>)}
+              <option value="NEW">-- Create New Category --</option>
+            </select>
+          </div>
+          {category === 'NEW' && (
+            <div>
+              <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">New Category Name</label>
+              <input type="text" className="w-full p-2 border border-slate-200 focus:border-blue-500 outline-none rounded" value={newCategory} onChange={e => setNewCategory(e.target.value)} />
+            </div>
+          )}
+          <div>
+            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Component Name</label>
+            <input type="text" className="w-full p-2 border border-slate-200 focus:border-blue-500 outline-none rounded" placeholder="e.g. WiFi Router" value={label} onChange={e => setLabel(e.target.value)} />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Inspection Criteria</label>
+            <textarea className="w-full p-2 border border-slate-200 focus:border-blue-500 outline-none rounded" placeholder="e.g. Check speed and connectivity" value={instruction} onChange={e => setInstruction(e.target.value)}></textarea>
+          </div>
+          <button
+            onClick={() => {
+              onSave(category === 'NEW' ? newCategory : category, label, instruction);
+              onClose();
+            }}
+            className="w-full py-2 bg-blue-600 text-white font-bold rounded mt-4 hover:bg-blue-700"
+          >
+            Save Entry
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function MaintenanceApp({ onBack }: { onBack?: () => void }) {
   const [activeTab, setActiveTab] = useState('checklist'); // checklist, sop
   const [selectedPropId, setSelectedPropId] = useState('h1');
-  const [statusState, setStatusState] = useState({});
+  const [statusState, setStatusState] = useState<Record<string, string>>({});
+  const [checklistData, setChecklistData] = useState(baseChecklistData);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [materialsNeeded, setMaterialsNeeded] = useState<Record<string, string>>({});
+  const [itemImages, setItemImages] = useState<Record<string, string>>({});
 
   const activeProp = properties.find(p => p.id === selectedPropId) || properties[0];
 
@@ -144,61 +205,72 @@ export default function MaintenanceApp() {
   // Filter items based on property amenities using useMemo for performance
   const filteredData = useMemo(() => {
     // Create a deep copy of the array structure, but NOT the icons
-    let data = JSON.parse(JSON.stringify(baseChecklistData));
-    
+    let data = JSON.parse(JSON.stringify(checklistData));
+
     // Logic: Remove Pool items if no pool
     if (!activeProp.pool) {
       data.Building = data.Building.filter(i => !i.label.includes('Pool'));
       data.Amenities = data.Amenities.filter(i => !i.label.includes('Pool'));
     } else {
-       // Add pool items dynamically if they don't exist in base
-       data.Amenities.push({ id: 'pool1', label: 'Pool Chemicals & Pump', instruction: 'pH, Chlorine, Backwash filter.' });
-       data.Amenities.push({ id: 'pool2', label: 'Patio Furniture', instruction: 'Check rattan/mesh for sun damage.' });
+      // Add pool items dynamically if they don't exist in base
+      data.Amenities.push({ id: 'pool1', label: 'Pool Chemicals & Pump', instruction: 'pH, Chlorine, Backwash filter.' });
+      data.Amenities.push({ id: 'pool2', label: 'Patio Furniture', instruction: 'Check rattan/mesh for sun damage.' });
     }
 
     // Logic: Add specific Commercial items
     if (activeProp.commercial) {
-        data.Amenities.push({ id: 'com1', label: 'Industrial Hood', instruction: 'Grease trap check.' });
-        data.Amenities.push({ id: 'com2', label: 'Walk-in Cooler', instruction: 'Temp log, seal check.' });
+      data.Amenities.push({ id: 'com1', label: 'Industrial Hood', instruction: 'Grease trap check.' });
+      data.Amenities.push({ id: 'com2', label: 'Walk-in Cooler', instruction: 'Temp log, seal check.' });
     }
 
     // Logic: Specific logic for Beach Bathrooms (Tinacos)
     if (activeProp.tinacos) {
-        data.Plumbing.push({ id: 'tina1', label: 'Roof Tinacos', instruction: 'Check float valve, lid security, sediment.' });
+      data.Plumbing.push({ id: 'tina1', label: 'Roof Tinacos', instruction: 'Check float valve, lid security, sediment.' });
     }
-    
+
     return data;
-  }, [activeProp]);
+  }, [activeProp, checklistData]);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
       {/* HEADER */}
       <header className="bg-slate-900 text-white p-6 shadow-lg sticky top-0 z-50">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-wider">RESORT OPS MASTER</h1>
-            <p className="text-slate-400 text-sm">Seasonal Maintenance & Infrastructure Audit</p>
+          <div className="flex items-center gap-4">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="p-2 bg-slate-800 hover:bg-slate-700 rounded-full text-slate-300 hover:text-white transition-colors"
+                title="Back to Dashboard"
+              >
+                <ChevronLeft size={24} />
+              </button>
+            )}
+            <div>
+              <h1 className="text-2xl font-bold tracking-wider">RESORT OPS MASTER</h1>
+              <p className="text-slate-400 text-sm">Seasonal Maintenance & Infrastructure Audit</p>
+            </div>
           </div>
           <div className="flex gap-4">
-             <button 
-                onClick={() => setActiveTab('checklist')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}
-             >
-                <Clipboard size={18} /> Checklist
-             </button>
-             <button 
-                onClick={() => setActiveTab('sop')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${activeTab === 'sop' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}
-             >
-                <Book size={18} /> SOP Manual
-             </button>
+            <button
+              onClick={() => setActiveTab('checklist')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}
+            >
+              <Clipboard size={18} /> Checklist
+            </button>
+            <button
+              onClick={() => setActiveTab('sop')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${activeTab === 'sop' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}
+            >
+              <Book size={18} /> SOP Manual
+            </button>
           </div>
         </div>
       </header>
 
       {/* MAIN CONTENT */}
       <main className="max-w-6xl mx-auto p-6">
-        
+
         {/* CHECKLIST VIEW */}
         {activeTab === 'checklist' && (
           <div>
@@ -210,7 +282,7 @@ export default function MaintenanceApp() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase">Select Unit</label>
-                  <select 
+                  <select
                     className="bg-transparent font-bold text-lg text-slate-800 outline-none border-b-2 border-transparent focus:border-blue-500 cursor-pointer"
                     value={selectedPropId}
                     onChange={(e) => setSelectedPropId(e.target.value)}
@@ -222,10 +294,17 @@ export default function MaintenanceApp() {
                 </div>
               </div>
 
-              <div className="text-right text-sm text-slate-500">
+              <div className="text-right text-sm text-slate-500 md:text-left flex-1 md:flex-none">
                 <p className="font-bold">{activeProp.beds}</p>
                 <p>{activeProp.pool ? (activeProp.pool === 'shared' ? 'Shared Pool' : 'Private Pool') : 'No Pool'} • {activeProp.floors} Floor(s)</p>
               </div>
+
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="flex items-center justify-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg font-bold hover:bg-slate-700 shadow-md transition ml-auto w-full md:w-auto"
+              >
+                <Plus size={18} /> Add Entry
+              </button>
             </div>
 
             {/* Checklist Tables */}
@@ -242,7 +321,7 @@ export default function MaintenanceApp() {
                       </div>
                       <h2 className="font-bold text-lg">{catName}</h2>
                     </div>
-                    
+
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm text-left min-w-[600px]">
                         <thead className="bg-slate-50 text-slate-500 uppercase text-xs">
@@ -265,10 +344,10 @@ export default function MaintenanceApp() {
                                       key={status}
                                       onClick={() => handleStatusChange(item.id, status)}
                                       className={`px-3 py-1 rounded-full text-xs font-bold border transition
-                                        ${getStatus(item.id) === status 
-                                          ? (status === 'Good' ? 'bg-green-100 text-green-700 border-green-200' : 
-                                             status === 'Repair' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : 
-                                             'bg-red-100 text-red-700 border-red-200')
+                                        ${getStatus(item.id) === status
+                                          ? (status === 'Good' ? 'bg-green-100 text-green-700 border-green-200' :
+                                            status === 'Repair' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
+                                              'bg-red-100 text-red-700 border-red-200')
                                           : 'bg-white text-slate-400 border-slate-200 hover:border-blue-300'
                                         }`}
                                     >
@@ -277,8 +356,36 @@ export default function MaintenanceApp() {
                                   ))}
                                 </div>
                               </td>
-                              <td className="px-6 py-4">
-                                <input type="text" placeholder="Add note..." className="w-full bg-transparent border-b border-slate-200 focus:border-blue-500 outline-none text-slate-600" />
+                              <td className="px-6 py-4 align-top w-[250px]">
+                                <div className="space-y-3">
+                                  <input type="text" placeholder="Add note..." className="w-full bg-transparent border-b border-slate-200 focus:border-blue-500 outline-none text-slate-600 text-sm pb-1" />
+
+                                  <label className="flex items-center gap-1 text-[11px] text-blue-600 cursor-pointer hover:text-blue-800 w-max font-bold tracking-wide uppercase">
+                                    <ImageIcon size={14} /> Attach Map/Photo
+                                    <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) {
+                                        const url = URL.createObjectURL(file);
+                                        setItemImages(prev => ({ ...prev, [item.id]: url }));
+                                      }
+                                    }} />
+                                  </label>
+
+                                  {itemImages[item.id] && (
+                                    <img src={itemImages[item.id]} className="w-full h-24 object-cover rounded-md border border-slate-200 shadow-sm" alt="Attached note" />
+                                  )}
+
+                                  <select
+                                    className="w-full text-xs p-1.5 bg-slate-50 border border-slate-200 rounded text-slate-600 outline-none focus:border-blue-500"
+                                    value={materialsNeeded[item.id] || ''}
+                                    onChange={(e) => setMaterialsNeeded(prev => ({ ...prev, [item.id]: e.target.value }))}
+                                  >
+                                    <option value="">+ Material Needed</option>
+                                    {INITIAL_INVENTORY.map(tool => (
+                                      <option key={tool.id} value={tool.id}>{tool.name} (Qty: {tool.available})</option>
+                                    ))}
+                                  </select>
+                                </div>
                               </td>
                             </tr>
                           ))}
@@ -289,14 +396,14 @@ export default function MaintenanceApp() {
                 );
               })}
             </div>
-            
+
             <div className="mt-8 flex justify-end gap-4 pb-8">
-                <button className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-300 rounded-lg font-semibold text-slate-600 hover:bg-slate-50">
-                    <Printer size={18} /> Print Report
-                </button>
-                <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 shadow-md">
-                    <Save size={18} /> Save Audit
-                </button>
+              <button className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-300 rounded-lg font-semibold text-slate-600 hover:bg-slate-50">
+                <Printer size={18} /> Print Report
+              </button>
+              <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 shadow-md">
+                <Save size={18} /> Save Audit
+              </button>
             </div>
           </div>
         )}
@@ -304,36 +411,50 @@ export default function MaintenanceApp() {
         {/* SOP MANUAL VIEW */}
         {activeTab === 'sop' && (
           <div className="animate-fade-in pb-8">
-             <div className="bg-white p-8 rounded-lg shadow-sm border border-slate-200">
-                <div className="border-b border-slate-200 pb-6 mb-6">
-                    <h2 className="text-2xl font-bold text-slate-800">SOP & Maintenance Protocols</h2>
-                    <p className="text-slate-500 mt-2">Strict guidelines for inspection and repair. Deviations require manager approval.</p>
-                </div>
+            <div className="bg-white p-8 rounded-lg shadow-sm border border-slate-200">
+              <div className="border-b border-slate-200 pb-6 mb-6">
+                <h2 className="text-2xl font-bold text-slate-800">SOP & Maintenance Protocols</h2>
+                <p className="text-slate-500 mt-2">Strict guidelines for inspection and repair. Deviations require manager approval.</p>
+              </div>
 
-                <div className="grid gap-6">
-                    {sopDatabase.map((sop, idx) => (
-                        <div key={idx} className="border border-slate-200 rounded-lg p-6 hover:shadow-md transition">
-                            <div className="flex flex-col md:flex-row justify-between items-start mb-4">
-                                <div>
-                                    <span className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-1 rounded">{sop.category}</span>
-                                    <h3 className="text-xl font-bold text-slate-800 mt-2">{sop.item}</h3>
-                                </div>
-                                <div className="text-left md:text-right mt-2 md:mt-0">
-                                    <span className="text-xs text-slate-400 font-semibold uppercase">Frequency</span>
-                                    <p className="text-sm font-medium text-slate-600">{sop.frequency}</p>
-                                </div>
-                            </div>
-                            <div className="bg-slate-50 p-4 rounded-md text-slate-700 text-sm leading-relaxed border-l-4 border-blue-400">
-                                {sop.procedure}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-             </div>
+              <div className="grid gap-6">
+                {sopDatabase.map((sop, idx) => (
+                  <div key={idx} className="border border-slate-200 rounded-lg p-6 hover:shadow-md transition">
+                    <div className="flex flex-col md:flex-row justify-between items-start mb-4">
+                      <div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-1 rounded">{sop.category}</span>
+                        <h3 className="text-xl font-bold text-slate-800 mt-2">{sop.item}</h3>
+                      </div>
+                      <div className="text-left md:text-right mt-2 md:mt-0">
+                        <span className="text-xs text-slate-400 font-semibold uppercase">Frequency</span>
+                        <p className="text-sm font-medium text-slate-600">{sop.frequency}</p>
+                      </div>
+                    </div>
+                    <div className="bg-slate-50 p-4 rounded-md text-slate-700 text-sm leading-relaxed border-l-4 border-blue-400">
+                      {sop.procedure}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
       </main>
+
+      <AddEntryModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        categories={Object.keys(checklistData)}
+        onSave={(cat: string, label: string, instruction: string) => {
+          setChecklistData(prev => {
+            const newData: Record<string, any[]> = { ...prev };
+            if (!newData[cat]) newData[cat] = [];
+            newData[cat].push({ id: `new-${Date.now()}`, label, instruction });
+            return newData as any;
+          });
+        }}
+      />
     </div>
   );
 }

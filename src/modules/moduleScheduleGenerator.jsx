@@ -8,6 +8,8 @@ import {
   Edit2,
   Trash2,
   Check,
+  Plus,
+  X,
 } from "lucide-react";
 
 const COLOR_PALETTE = [
@@ -71,9 +73,8 @@ const RoleManager = ({ isOpen, onClose, roles, setRoles }) => {
               <button
                 key={c.hex}
                 onClick={() => setNewRoleColor(c.hex)}
-                className={`w-6 h-6 rounded-full border ${
-                  newRoleColor === c.hex ? "ring-2" : ""
-                }`}
+                className={`w-6 h-6 rounded-full border ${newRoleColor === c.hex ? "ring-2" : ""
+                  }`}
                 style={{ backgroundColor: c.hex }}
               />
             ))}
@@ -299,13 +300,13 @@ export default function ModuleScheduleGenerator({
               <span className="text-xs font-bold w-24 text-center truncate px-2">
                 {isMasterMode
                   ? assignMonth.toLocaleString("default", {
-                      month: "short",
-                      year: "numeric",
-                    })
+                    month: "short",
+                    year: "numeric",
+                  })
                   : viewDate.toLocaleString("default", {
-                      month: "short",
-                      year: "numeric",
-                    })}
+                    month: "short",
+                    year: "numeric",
+                  })}
               </span>
               <button
                 onClick={() =>
@@ -426,11 +427,10 @@ export default function ModuleScheduleGenerator({
                         <div
                           key={i}
                           onClick={() => toggleDateSelection(dStr)}
-                          className={`h-8 flex itemsCenter justify-center text-xs rounded cursor-pointer transition-colors ${
-                            isSel
+                          className={`h-8 flex itemsCenter justify-center text-xs rounded cursor-pointer transition-colors ${isSel
                               ? "bg-blue-600 text-white font-bold"
                               : "hover:bg-blue-50 text-gray-700"
-                          }`}
+                            }`}
                         >
                           {d.getDate()}
                         </div>
@@ -490,14 +490,12 @@ export default function ModuleScheduleGenerator({
               return (
                 <div
                   key={idx}
-                  className={`min-h-[80px] sm:min-h-[100px] bg-white border-r border-b border-gray-200 p-0.5 sm:p-1 relative ${
-                    isToday ? "bg-blue-50/30" : ""
-                  }`}
+                  className={`min-h-[80px] sm:min-h-[100px] bg-white border-r border-b border-gray-200 p-0.5 sm:p-1 relative ${isToday ? "bg-blue-50/30" : ""
+                    }`}
                 >
                   <div
-                    className={`text-right text-[10px] sm:text-xs mb-1 px-1 ${
-                      isToday ? "font-bold text-blue-600" : "text-gray-400"
-                    }`}
+                    className={`text-right text-[10px] sm:text-xs mb-1 px-1 ${isToday ? "font-bold text-blue-600" : "text-gray-400"
+                      }`}
                   >
                     {day.getDate()}
                   </div>
@@ -512,19 +510,18 @@ export default function ModuleScheduleGenerator({
                           <div
                             key={shift.id}
                             onClick={() => openShiftEditor(shift)}
-                            className={`text-[8px] sm:text-[10px] p-0.5 sm:p-1 rounded border font-bold flex items-center justify-between cursor-pointer h-5 sm:h-6 overflow-hidden ${
-                              isMine
+                            className={`text-[8px] sm:text-[10px] p-0.5 sm:p-1 rounded border font-bold flex items-center justify-between cursor-pointer h-5 sm:h-6 overflow-hidden ${isMine
                                 ? "border-purple-300 bg-purple-100 text-purple-800"
                                 : "border-gray-200 bg-gray-50 text-gray-500 opacity-80"
-                            }`}
+                              }`}
                           >
                             <div className="flex items-center gap-1 overflow-hidden">
                               <Truck size={10} />{" "}
                               <span className="truncate">
                                 {isMasterMode || viewScope === "full"
                                   ? staffList.find(
-                                      (s) => s.id === shift.empId
-                                    )?.name
+                                    (s) => s.id === shift.empId
+                                  )?.name
                                   : "Me"}
                               </span>
                             </div>
@@ -535,24 +532,21 @@ export default function ModuleScheduleGenerator({
                         <div
                           key={shift.id}
                           onClick={() => openShiftEditor(shift)}
-                          className={`text-[8px] sm:text-[10px] p-0.5 sm:p-1 rounded border shadow-sm cursor-pointer hover:ring-2 ring-offset-1 transition-all overflow-hidden ${
-                            shift.type === "Half"
+                          className={`text-[8px] sm:text-[10px] p-0.5 sm:p-1 rounded border shadow-sm cursor-pointer hover:ring-2 ring-offset-1 transition-all overflow-hidden ${shift.type === "Half"
                               ? "w-full sm:w-1/2 sm:inline-block align-top"
                               : "w-full"
-                          } ${
-                            isCancelled
+                            } ${isCancelled
                               ? "border-red-500 bg-red-50 opacity-75"
                               : ""
-                          } ${
-                            !isMine && !isMasterMode ? "opacity-70" : ""
-                          }`}
+                            } ${!isMine && !isMasterMode ? "opacity-70" : ""
+                            }`}
                           style={
                             !isCancelled
                               ? {
-                                  backgroundColor: role.color + "20",
-                                  borderColor: role.color,
-                                  borderLeftWidth: "3px",
-                                }
+                                backgroundColor: role.color + "20",
+                                borderColor: role.color,
+                                borderLeftWidth: "3px",
+                              }
                               : {}
                           }
                         >
@@ -566,11 +560,10 @@ export default function ModuleScheduleGenerator({
                             </div>
                           )}
                           <div
-                            className={`font-medium truncate ${
-                              isCancelled
+                            className={`font-medium truncate ${isCancelled
                                 ? "text-red-600 line-through"
                                 : "text-gray-700"
-                            }`}
+                              }`}
                           >
                             {role.name}
                           </div>
