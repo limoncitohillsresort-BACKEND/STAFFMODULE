@@ -9,8 +9,18 @@ import {
   BookOpen,
   ClipboardList,
   Home,
+  CheckSquare,
+  CalendarDays,
+  Users,
+  Package,
+  DollarSign,
 } from "lucide-react";
 import ModuleBuzon from "../modules/moduleBuzon.jsx";
+import ModuleActivityLog from "../modules/moduleActivityLog.jsx";
+import ModuleEventTimeline from "../modules/moduleEventTimeline.jsx";
+import ModuleGuestLogs from "../modules/moduleGuestLogs.jsx";
+import ModuleInventory from "../modules/moduleInventory.jsx";
+import ModulePayroll from "../modules/modulePayroll.jsx";
 import ModuleStaffManagement from "../modules/moduleStaffManagement.jsx";
 import ModuleScheduleGenerator from "../modules/moduleScheduleGenerator.jsx";
 const StaffTraining = lazy(() =>
@@ -30,6 +40,36 @@ const MaintenanceDashboard = lazy(() =>
 );
 
 const MODULES = {
+  payroll: {
+    title: "Payroll",
+    icon: <DollarSign size={24} />,
+    color: "#f1c40f",
+    component: ModulePayroll,
+  },
+  global_inventory: {
+    title: "Global Inventory",
+    icon: <Package size={24} />,
+    color: "#27ae60",
+    component: ModuleInventory,
+  },
+  guest_logs: {
+    title: "Guest Logs",
+    icon: <Users size={24} />,
+    color: "#2c3e50",
+    component: ModuleGuestLogs,
+  },
+  event_timeline: {
+    title: "Event Timeline",
+    icon: <CalendarDays size={24} />,
+    color: "#d35400",
+    component: ModuleEventTimeline,
+  },
+  activity_log: {
+    title: "Activity Log",
+    icon: <CheckSquare size={24} />,
+    color: "#8e44ad",
+    component: ModuleActivityLog,
+  },
   buzon: {
     title: "Buzón RH",
     icon: <Inbox size={24} />,
@@ -245,7 +285,7 @@ export default function AdminApp() {
             onBack={() => setActiveModule(null)}
           />
         ) : (
-          <ModuleComponent onBack={() => setActiveModule(null)} />
+          <ModuleComponent user={user} onBack={() => setActiveModule(null)} />
         )}
       </Suspense>
     </div>

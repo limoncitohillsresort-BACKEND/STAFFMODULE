@@ -1,12 +1,19 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
-import { LogOut, Inbox, BookOpen, ClipboardList, Home } from "lucide-react";
+import { LogOut, Inbox, BookOpen, ClipboardList, Home, CheckSquare } from "lucide-react";
 import ModuleBuzon from "../modules/moduleBuzon.jsx";
+import ModuleActivityLog from "../modules/moduleActivityLog.jsx";
 
 const StaffTraining = lazy(() => import("../TESTENV/moduleStaffTraining.tsx"));
 const ToolCheckout = lazy(() => import("../TESTENV/moduleToolCheckout.tsx"));
 const MaintenanceDashboard = lazy(() => import("../TESTENV/dashboardMaintenance.tsx"));
 
 const STAFF_MODULES = {
+  activity_log: {
+    title: "My Activity",
+    icon: <CheckSquare size={22} />,
+    color: "#8e44ad",
+    component: ModuleActivityLog,
+  },
   buzon: {
     title: "Buzón RH",
     icon: <Inbox size={22} />,
@@ -173,7 +180,7 @@ export default function StaffApp() {
     <div className="app-root">
       <Styles />
       <Suspense fallback={<div className="p-4">Loading module...</div>}>
-        <ModuleComponent onBack={() => setActiveModule(null)} />
+        <ModuleComponent user={user} onBack={() => setActiveModule(null)} />
       </Suspense>
     </div>
   );
