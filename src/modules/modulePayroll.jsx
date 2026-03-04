@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DollarSign, User, Calendar, FileText, CheckCircle, ChevronLeft, ChevronRight, Download, Plus, AlertCircle, Percent, PenTool, CheckSquare, X, Save, Send } from 'lucide-react';
+import { DollarSign, User, Calendar, FileText, CheckCircle, ChevronLeft, ChevronRight, Download, Plus, AlertCircle, Percent, PenTool, CheckSquare, X, Save, Send, Camera } from 'lucide-react';
 
 const STAFF_LIST = [
    { id: 'E001', name: 'Dalia M.', role: 'Housekeeping', rate: 450, dailyHours: 8 },
@@ -115,6 +115,84 @@ const DeductionsModal = ({ isOpen, onClose, staff, deductions, onAdd, onRemove }
    );
 };
 
+// UI Standardized Modal for Employee Loans
+const LoanCalcModal = ({ isOpen, onClose, staff, onApprove }) => {
+   const [amount, setAmount] = useState('');
+   const [purpose, setPurpose] = useState('');
+   const [plan, setPlan] = useState('1week'); // 1week, daily, weekly
+   const [installment, setInstallment] = useState('');
+
+   if (!isOpen) return null;
+
+   const numAmount = parseFloat(amount) || 0;
+   const numInstallment = parseFloat(installment) || 0;
+
+   let payoffText = '';
+   if (numAmount > 0) {
+      if (plan === '1week') {
+         payoffText = `Paid off entirely in the next payroll cycle (-$${numAmount.toFixed(2)} deduction).`;
+      } else if (plan === 'daily' && numInstallment > 0) {
+         const days = Math.ceil(numAmount / numInstallment);
+         payoffText = `Paid off in ${days} working days (-$${numInstallment.toFixed(2)} / day).`;
+      } else if (plan === 'weekly' && numInstallment > 0) {
+         const weeks = Math.ceil(numAmount / numInstallment);
+         payoffText = `Paid off in ${weeks} payroll cycles (-$${numInstallment.toFixed(2)} / week).`;
+      }
+   }
+
+   const handleApprove = () => {
+      onApprove(numAmount, purpose, plan, numInstallment);
+      onClose();
+   };
+
+   return (
+      <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4">
+         <div className="bg-white rounded-xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="bg-slate-800 text-white p-4 flex justify-between items-center">
+               <h3 className="font-bold flex items-center gap-2">
+                  <DollarSign size={18} /> Employee Loan Calculator
+               </h3>
+               <button onClick={onClose} className="hover:text-red-400 transition"><X size={18} /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+               <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Loan Amount ($)</label>
+                  <input type="number" className="w-full p-2 border rounded outline-none focus:border-blue-500 transition" value={amount} onChange={(e) => setAmount(e.target.value)} />
+               </div>
+               <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Loan Purpose</label>
+                  <input type="text" className="w-full p-2 border rounded outline-none focus:border-blue-500 transition" placeholder="e.g. Medical Emergency, New Phone" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+               </div>
+               <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Installment Plan</label>
+                  <select className="w-full p-2 border rounded outline-none focus:border-blue-500 transition" value={plan} onChange={(e) => setPlan(e.target.value)}>
+                     <option value="1week">Single Deduction (Next Paycheck)</option>
+                     <option value="daily">Daily Deduction</option>
+                     <option value="weekly">Weekly Deduction</option>
+                  </select>
+               </div>
+               {plan !== '1week' && (
+                  <div>
+                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Installment Amount ($)</label>
+                     <input type="number" className="w-full p-2 border rounded outline-none focus:border-blue-500 transition" value={installment} onChange={(e) => setInstallment(e.target.value)} />
+                  </div>
+               )}
+               <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 mt-2">
+                  <p className="text-sm font-bold text-blue-800 mb-1">Payoff Projection:</p>
+                  <p className="text-xs text-blue-600 font-medium">{payoffText || 'Enter amount to calculate'}</p>
+               </div>
+            </div>
+            <div className="p-4 bg-slate-50 border-t flex gap-3">
+               <button onClick={onClose} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 rounded-lg transition">Cancel</button>
+               <button onClick={handleApprove} disabled={!numAmount || !purpose} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition disabled:opacity-50 shadow-md">
+                  Approve Loan
+               </button>
+            </div>
+         </div>
+      </div>
+   );
+};
+
 export default function ModulePayroll({ onBack }) {
    const [selectedStaff, setSelectedStaff] = useState('E002');
    const [signed, setSigned] = useState(false);
@@ -128,6 +206,7 @@ export default function ModulePayroll({ onBack }) {
    // Modal states
    const [editingDay, setEditingDay] = useState(null);
    const [showDeductions, setShowDeductions] = useState(false);
+   const [showLoanModal, setShowLoanModal] = useState(false);
 
    const staff = STAFF_LIST.find(s => s.id === selectedStaff);
    const log = weeklyLogs[selectedStaff] || { daysWorked: 0, totalHours: 0, extraBounties: 0, customHours: {} };
@@ -193,6 +272,20 @@ export default function ModulePayroll({ onBack }) {
       setSigned(false);
    };
 
+   const handleApproveLoan = (amount, purpose, plan, installment) => {
+      let deductionAmount = amount;
+      if (plan === 'daily') deductionAmount = installment * 6; // Assume 6 days/week
+      if (plan === 'weekly') deductionAmount = installment;
+
+      setDeductionsDb(prev => ({
+         ...prev,
+         [selectedStaff]: [
+            ...(prev[selectedStaff] || []),
+            { id: 'loan_' + Date.now(), reason: `Loan Inst. (${purpose})`, amount: -Math.abs(deductionAmount) }
+         ]
+      }));
+   };
+
    return (
       <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
          <header className="bg-slate-900 text-white p-4 shadow-md shrink-0 sticky top-0 z-30">
@@ -209,6 +302,9 @@ export default function ModulePayroll({ onBack }) {
                   </div>
                </div>
                <div className="flex items-center gap-3">
+                  <button onClick={() => setShowLoanModal(true)} className="bg-orange-100 hover:bg-orange-200 text-orange-800 px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 transition border border-orange-200 shadow-sm hidden md:flex">
+                     <DollarSign size={16} /> Request Loan
+                  </button>
                   <button onClick={() => setPushed(true)} disabled={pushed} className={`px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 shadow transition ${pushed ? 'bg-green-600/50 text-white cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 text-white'}`}>
                      <Send size={16} /> {pushed ? 'Pushed to Staff' : 'Push to Staff'}
                   </button>
@@ -242,7 +338,7 @@ export default function ModulePayroll({ onBack }) {
                            >
                               <div>
                                  <h3 className={`font-bold ${isSelected ? 'text-blue-700' : 'text-slate-800'}`}>{s.name}</h3>
-                                 <p className="text-xs text-slate-500">{s.role}</p>
+                                 <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{s.role} • <span className="text-green-600">${s.rate}/hr</span></p>
                               </div>
                               <div className="text-right">
                                  <span className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded font-bold block mb-1">
@@ -275,19 +371,45 @@ export default function ModulePayroll({ onBack }) {
                         <span className="flex items-center gap-2"><Calendar size={16} /> Daily Attendance Log</span>
                         <span className="text-[10px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded uppercase tracking-widest shadow-sm">Tap day to edit</span>
                      </h3>
-                     <div className="flex flex-wrap md:flex-nowrap bg-slate-100 rounded-lg border border-slate-200 overflow-hidden text-center divide-x divide-slate-200">
+                     <div className="flex flex-col bg-white rounded-lg border border-slate-200 overflow-hidden divide-y divide-slate-100 shadow-sm">
                         {daysOfWeek.map((day, i) => {
                            const worked = i < log.daysWorked || log.customHours?.[day] > 0;
                            const displayedHours = log.customHours?.[day] !== undefined ? log.customHours[day] : (i < log.daysWorked ? staff.dailyHours : 0);
+
+                           // Mock time logic
+                           let timeIn = '-';
+                           let timeOut = '-';
+                           if (worked && displayedHours > 0) {
+                              timeIn = '09:00 AM';
+                              const endH = Math.floor(9 + displayedHours);
+                              const endM = ((9 + displayedHours) % 1) * 60;
+                              const amPm = endH >= 12 ? 'PM' : 'AM';
+                              const displayH = endH > 12 ? endH - 12 : endH;
+                              timeOut = `${displayH.toString().padStart(2, '0')}:${endM === 0 ? '00' : '30'} ${amPm}`;
+                           }
+
                            return (
-                              <div key={day} onClick={() => setEditingDay(day)} className="flex-1 p-3 bg-white hover:bg-blue-50 cursor-pointer transition active:bg-blue-100 relative">
-                                 {log.customHours?.[day] !== undefined && (
-                                    <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-orange-400" title="Manually Edited"></div>
-                                 )}
-                                 <div className="text-xs font-bold text-slate-400 uppercase">{day}</div>
-                                 <div className={`mt-2 font-bold ${worked && displayedHours > 0 ? 'text-green-600' : 'text-slate-300'}`}>
-                                    {worked && displayedHours > 0 ? (displayedHours + 'h') : 'OFF'}
+                              <div key={day} onClick={() => setEditingDay(day)} className="flex items-center justify-between p-3 hover:bg-blue-50 cursor-pointer transition group">
+                                 <div className="flex items-center gap-4 w-1/3">
+                                    <div className="text-xs font-bold text-slate-500 uppercase w-10">{day}</div>
+                                    <div className={`text-sm font-bold ${worked && displayedHours > 0 ? 'text-green-600' : 'text-slate-300'}`}>
+                                       {worked && displayedHours > 0 ? `${displayedHours}h` : 'OFF'}
+                                    </div>
+                                    {log.customHours?.[day] !== undefined && (
+                                       <span className="text-[10px] bg-orange-100 text-orange-700 font-bold px-1.5 py-0.5 rounded uppercase flex items-center gap-1"><PenTool size={10} /> Edited</span>
+                                    )}
                                  </div>
+                                 <div className="flex items-center gap-8 text-sm">
+                                    <div className="flex flex-col">
+                                       <span className="text-[10px] font-bold text-slate-400 uppercase">Clock In</span>
+                                       <span className={`font-mono ${worked && displayedHours > 0 ? 'text-slate-700' : 'text-slate-300'}`}>{timeIn}</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                       <span className="text-[10px] font-bold text-slate-400 uppercase">Clock Out</span>
+                                       <span className={`font-mono ${worked && displayedHours > 0 ? 'text-slate-700' : 'text-slate-300'}`}>{timeOut}</span>
+                                    </div>
+                                 </div>
+                                 <div className="text-slate-300 group-hover:text-blue-500 transition"><ChevronRight size={16} /></div>
                               </div>
                            )
                         })}
@@ -342,6 +464,47 @@ export default function ModulePayroll({ onBack }) {
                   </div>
 
                   <div className="pt-6 border-t border-slate-200">
+                     <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2"><Camera size={16} /> Activity Log Bounties</h3>
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col hover:shadow-md transition">
+                           <div className="w-full h-32 bg-slate-800 rounded-lg mb-3 relative overflow-hidden group">
+                              <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=300&q=80" className="w-full h-full object-cover opacity-80" alt="Plumbing Fix" />
+                              <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-1.5 text-left text-[9px] font-mono text-green-400">
+                                 <p>DAT: 2026-03-02 14:32:11</p>
+                                 <p>DEV: iPhone 13 Pro [GEO-ON]</p>
+                              </div>
+                           </div>
+                           <div className="flex justify-between items-start mb-3">
+                              <span className="font-bold text-slate-800 text-sm leading-tight text-left">Emergency Pipe Fix - Master Villa</span>
+                              <span className="bg-green-100 text-green-700 font-black text-xs px-2 py-1 rounded border border-green-200">+$150.00</span>
+                           </div>
+                           <div className="flex gap-2 mt-auto">
+                              <button className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-lg transition shadow-sm">Approve</button>
+                              <button className="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold px-3 py-2 rounded-lg transition border border-slate-200">Reject</button>
+                           </div>
+                        </div>
+
+                        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col hover:shadow-md transition">
+                           <div className="w-full h-32 bg-slate-800 rounded-lg mb-3 relative overflow-hidden group">
+                              <img src="https://images.unsplash.com/photo-1585807530867-27b0031846b4?auto=format&fit=crop&w=300&q=80" className="w-full h-full object-cover opacity-80" alt="Pest Control" />
+                              <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-1.5 text-left text-[9px] font-mono text-green-400">
+                                 <p>DAT: 2026-03-01 09:15:45</p>
+                                 <p>DEV: SM-G998B [GEO-ON]</p>
+                              </div>
+                           </div>
+                           <div className="flex justify-between items-start mb-3">
+                              <span className="font-bold text-slate-800 text-sm leading-tight text-left">Pest Control Perimeter Spray</span>
+                              <span className="bg-green-100 text-green-700 font-black text-xs px-2 py-1 rounded border border-green-200">+$150.00</span>
+                           </div>
+                           <div className="flex gap-2 mt-auto">
+                              <button className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-lg transition shadow-sm">Approve</button>
+                              <button className="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold px-3 py-2 rounded-lg transition border border-slate-200">Reject</button>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div className="pt-6 border-t border-slate-200">
                      <div className="bg-slate-800 rounded-xl p-6 text-white text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-6">
                         <div>
                            <h4 className="font-bold text-lg mb-1">Employee Verification Sign-off</h4>
@@ -378,6 +541,13 @@ export default function ModulePayroll({ onBack }) {
             deductions={deductions}
             onAdd={handleAddDeduction}
             onRemove={handleRemoveDeduction}
+         />
+
+         <LoanCalcModal
+            isOpen={showLoanModal}
+            onClose={() => setShowLoanModal(false)}
+            staff={staff}
+            onApprove={handleApproveLoan}
          />
       </div>
    );

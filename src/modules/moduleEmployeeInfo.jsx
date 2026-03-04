@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, User, Phone, Mail, MapPin, Calendar, Briefcase, Award, Shield, FileText, AlertCircle, Clock, CheckCircle } from 'lucide-react';
+import { ChevronLeft, User, Phone, Mail, MapPin, Calendar, Briefcase, Award, Shield, FileText, AlertCircle, Clock, CheckCircle, BookOpen } from 'lucide-react';
 
 const MOCK_EMPLOYEE = {
    id: 'E001',
