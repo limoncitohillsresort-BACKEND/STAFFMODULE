@@ -1,13 +1,7 @@
 import React, { useState, useRef } from "react";
 import {
-  ChevronLeft,
-  Printer,
-  Trash2,
-  Plus,
-  X,
-  Paperclip,
-  Check,
-  Eraser,
+  ChevronLeft, Printer, Trash2, Plus, X, Paperclip, Check, Eraser,
+  Inbox, Send, AlertTriangle, MessageSquare, CheckCircle, Clock, ShieldAlert, Wrench, Sparkles, User
 } from "lucide-react";
 
 const formatDateDDMMYYYY = (dateObj) => {
@@ -19,7 +13,42 @@ const formatDateDDMMYYYY = (dateObj) => {
   return `${day}/${month}/${year}`;
 };
 
-const SignatureCanvas = () => {
+const CATEGORIES = [
+  { id: 'housekeeping', label: 'Housekeeping & Cleanliness', icon: Sparkles, color: 'text-blue-500', bg: 'bg-blue-100' },
+  { id: 'maintenance', label: 'Facilities Maintenance', icon: Wrench, color: 'text-orange-500', bg: 'bg-orange-100' },
+  { id: 'staff', label: 'HR / Staff Conduct', icon: User, color: 'text-purple-500', bg: 'bg-purple-100' },
+  { id: 'security', label: 'Security & Safety', icon: ShieldAlert, color: 'text-red-500', bg: 'bg-red-100' },
+  { id: 'other', label: 'Other', icon: MessageSquare, color: 'text-slate-500', bg: 'bg-slate-100' }
+];
+
+const INITIAL_INBOX = [
+  {
+    id: 'TKT-82910',
+    date: '12/10/2023',
+    time: '14:30',
+    reporter: 'Carlos R.',
+    category: 'maintenance',
+    location: 'Villa 2 AC Unit',
+    description: 'Compressor is making a loud grinding noise and leaking freon.',
+    witnesses: 'None',
+    status: 'Pending',
+    resolutionNotes: ''
+  },
+  {
+    id: 'TKT-91022',
+    date: '10/10/2023',
+    time: '09:15',
+    reporter: 'Sarah S.',
+    category: 'staff',
+    location: 'Staff Breakroom',
+    description: 'Found uniform items left in the sink again. Happens every Tuesday.',
+    witnesses: 'Dalia M.',
+    status: 'Resolved',
+    resolutionNotes: 'Spoke with morning shift. Issued warning.'
+  }
+];
+
+const SignatureCanvas = ({ onClear }) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
@@ -28,14 +57,9 @@ const SignatureCanvas = () => {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-    return {
-      x: (clientX - rect.left) * scaleX,
-      y: (clientY - rect.top) * scaleY,
-    };
+    return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
   };
 
   const startDrawing = (e) => {
@@ -65,11 +89,12 @@ const SignatureCanvas = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (onClear) onClear();
   };
 
   return (
     <div className="w-full">
-      <div className="border-b-2 border-gray-400 bg-gray-50/50 relative">
+      <div className="border border-slate-300 rounded-lg bg-white relative overflow-hidden shadow-inner">
         <canvas
           ref={canvasRef}
           width={600}
@@ -83,490 +108,323 @@ const SignatureCanvas = () => {
           onTouchMove={draw}
           onTouchEnd={stopDrawing}
         />
-        <div className="absolute top-1 right-1 pointer-events-none text-xs text-gray-400 select-none">
-          X
+        <div className="absolute top-2 right-2 pointer-events-none text-[10px] text-slate-400 font-bold uppercase tracking-widest select-none">
+          Sign Here
         </div>
       </div>
-      <div className="flex justify-end mt-1">
-        <button
-          onClick={clearCanvas}
-          className="text-xs text-red-500 hover:text-red-700 underline flex items-center gap-1"
-        >
-          <Eraser size={12} /> Borrar firma
+      <div className="flex justify-end mt-2">
+        <button onClick={clearCanvas} type="button" className="text-xs text-red-500 hover:text-red-700 font-bold flex items-center gap-1 transition">
+          <Eraser size={14} /> Clear Signature
         </button>
       </div>
     </div>
   );
 };
 
-export default function ModuleBuzon({ onBack }) {
-  const [rows, setRows] = useState([
-    {
-      id: 1,
-      date: "",
-      time: "",
-      location: "",
-      description: "",
-      witnesses: "",
-      images: [],
-    },
-    {
-      id: 2,
-      date: "",
-      time: "",
-      location: "",
-      description: "",
-      witnesses: "",
-      images: [],
-    },
-  ]);
-  const [modal, setModal] = useState({ isOpen: false, rowId: null, text: "" });
-  const [imageModal, setImageModal] = useState({ isOpen: false, rowId: null });
-  const [headerInfo] = useState({
-    refId: "RH-" + Math.floor(100000 + Math.random() * 900000),
-    currentDate: formatDateDDMMYYYY(new Date()),
+export default function ModuleBuzon({ onBack, user }) {
+  const isAdmin = user?.isAdmin || user?.role === 'System Admin' || user?.role === 'Manager';
+  const [viewMode, setViewMode] = useState(isAdmin ? 'inbox' : 'submit');
+
+  const [tickets, setTickets] = useState(INITIAL_INBOX);
+  const [activeTicket, setActiveTicket] = useState(null);
+
+  // Submit Form State
+  const [formData, setFormData] = useState({
+    category: '', location: '', description: '', witnesses: '', date: new Date().toISOString().split('T')[0], time: '12:00'
   });
+  const [images, setImages] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
-  const addRow = () => {
-    const newId = rows.length > 0 ? Math.max(...rows.map((r) => r.id)) + 1 : 1;
-    setRows([
-      ...rows,
-      {
-        id: newId,
-        date: "",
-        time: "",
-        location: "",
-        description: "",
-        witnesses: "",
-        images: [],
-      },
-    ]);
-  };
-
-  const removeRow = (id) => {
-    if (rows.length > 1) {
-      setRows(rows.filter((r) => r.id !== id));
-    } else {
-      setRows([
-        {
-          id: 1,
-          date: "",
-          time: "",
-          location: "",
-          description: "",
-          witnesses: "",
-          images: [],
-        },
-      ]);
-    }
-  };
-
-  const updateRow = (id, field, value) =>
-    setRows(
-      rows.map((row) => (row.id === id ? { ...row, [field]: value } : row))
-    );
-
-  const openEditor = (id, currentText) =>
-    setModal({ isOpen: true, rowId: id, text: currentText });
-
-  const saveModal = () => {
-    updateRow(modal.rowId, "description", modal.text);
-    setModal({ ...modal, isOpen: false });
-  };
-
-  const clearForm = () => {
-    if (
-      window.confirm("¿Está seguro de que desea borrar todo el formulario?")
-    ) {
-      setRows([
-        {
-          id: 1,
-          date: "",
-          time: "",
-          location: "",
-          description: "",
-          witnesses: "",
-          images: [],
-        },
-      ]);
-      const inputs = document.querySelectorAll(".cell-input");
-      inputs.forEach((input) => (input.value = ""));
-    }
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
     const newImages = files.map((file) => URL.createObjectURL(file));
-    setRows(
-      rows.map((row) =>
-        row.id === imageModal.rowId
-          ? { ...row, images: [...row.images, ...newImages] }
-          : row
-      )
-    );
+    setImages([...images, ...newImages]);
   };
 
-  const removeImage = (rowId, imgIndex) => {
-    setRows(
-      rows.map((row) => {
-        if (row.id === rowId) {
-          const newImages = [...row.images];
-          newImages.splice(imgIndex, 1);
-          return { ...row, images: newImages };
-        }
-        return row;
-      })
-    );
+  const removeImage = (idx) => {
+    const newImgs = [...images];
+    newImgs.splice(idx, 1);
+    setImages(newImgs);
   };
 
-  const handleSubmitReport = () => {
-    if (
-      window.confirm("¿Está seguro de que desea enviar este reporte?")
-    ) {
-      alert("Reporte enviado exitosamente.");
-      if (onBack) onBack();
+  const submitReport = () => {
+    if (!formData.category || !formData.description) {
+      alert("Please select a category and provide a description.");
+      return;
     }
+    setSubmitting(true);
+    setTimeout(() => {
+      const newTicket = {
+        id: 'TKT-' + Math.floor(100000 + Math.random() * 900000),
+        date: formatDateDDMMYYYY(formData.date),
+        time: formData.time,
+        reporter: user?.name || 'Anonymous Staff',
+        category: formData.category,
+        location: formData.location,
+        description: formData.description,
+        witnesses: formData.witnesses,
+        status: 'Pending',
+        resolutionNotes: ''
+      };
+      setTickets([newTicket, ...tickets]);
+      setSubmitting(false);
+      alert("Report submitted successfully.");
+      setFormData({ category: '', location: '', description: '', witnesses: '', date: new Date().toISOString().split('T')[0], time: '12:00' });
+      setImages([]);
+      if (isAdmin) setViewMode('inbox');
+    }, 1000);
   };
 
-  const allEvidence = rows.flatMap((r) =>
-    r.images.map((img) => ({ img, rowId: r.id }))
-  );
+  const resolveTicket = () => {
+    if (!activeTicket.resolutionNotes) {
+      alert("Please provide resolution notes before closing.");
+      return;
+    }
+    setTickets(tickets.map(t => t.id === activeTicket.id ? { ...t, status: 'Resolved', resolutionNotes: activeTicket.resolutionNotes } : t));
+    setActiveTicket(null);
+  };
 
   return (
-    <div className="module-page bg-gray-100 min-h-screen">
-      <div className="max-w-5xl mx-auto p-4 flex justify-between items-center no-print">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            Bitácora Confidencial de Incidentes
-          </h1>
-          <p className="text-sm text-gray-500">
-            Documento Interno Seguro • Formulario RH-902
-          </p>
-        </div>
-        <div className="flex gap-3">
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="px-4 py-2 text-sm bg-white border rounded hover:bg-gray-50 flex items-center gap-2"
-            >
-              <ChevronLeft size={16} /> Volver
-            </button>
-          )}
-          <button
-            onClick={clearForm}
-            className="px-4 py-2 text-sm text-red-600 bg-white border border-red-200 rounded hover:bg-red-50"
-          >
-            Borrar Formulario
-          </button>
-          <button
-            onClick={() => window.print()}
-            className="px-4 py-2 text-sm text-white bg-blue-600 rounded flex items-center gap-2"
-          >
-            <Printer size={16} /> Imprimir / PDF
-          </button>
-        </div>
-      </div>
-
-      <div className="max-w-5xl mx-auto bg-white sheet-container border border-gray-300 mb-8">
-        <div className="p-6 border-b border-gray-300 bg-gray-50">
-          <div className="flex justify-between items-start">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gray-800 text-white flex items-center justify-center font-bold text-xl rounded">
-                RH
+    <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
+      <header className="bg-slate-900 text-white p-4 shadow-md shrink-0 sticky top-0 z-30 tracking-wide">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-3">
+            {onBack && (
+              <button onClick={onBack} className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-full text-slate-300 hover:text-white transition">
+                <ChevronLeft size={20} />
+              </button>
+            )}
+            <div>
+              <h1 className="text-lg font-bold leading-none">Buzón RH / Internal Reports</h1>
+              <p className="text-xs text-slate-400">Confidential Ticket Routing & Incident Logging</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {isAdmin && (
+              <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-700 shadow-inner mr-2">
+                <button onClick={() => setViewMode('inbox')} className={`px-4 py-1.5 rounded text-xs font-bold transition flex items-center gap-1.5 ${viewMode === 'inbox' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}><Inbox size={14} /> Inbox</button>
+                <button onClick={() => setViewMode('submit')} className={`px-4 py-1.5 rounded text-xs font-bold transition flex items-center gap-1.5 ${viewMode === 'submit' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}><Plus size={14} /> Submit</button>
               </div>
+            )}
+            <button onClick={() => window.print()} className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+              <Printer size={14} /> Print
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6 flex flex-col items-center">
+
+        {viewMode === 'submit' && (
+          <div className="w-full max-w-3xl bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col mt-4">
+            <div className="bg-slate-800 text-white p-6 md:p-8 relative overflow-hidden">
+              <AlertTriangle className="absolute right-[-20px] top-[-20px] text-white/5" size={150} />
+              <h2 className="text-2xl font-black relative z-10">Confidential Incident Report</h2>
+              <p className="text-slate-300 text-sm mt-1 max-w-lg relative z-10">Use this form to document incidents, property damage, HR violations, or operational anomalies. Reports are securely routed to corresponding management.</p>
+            </div>
+
+            <div className="p-6 md:p-8 space-y-8">
+
+              {/* Category Selection */}
               <div>
-                <h2 className="text-xl font-bold text-gray-900 uppercase">
-                  Reporte de Mala Conducta
-                </h2>
-                <p className="text-xs text-gray-500">
-                  ESTRICTAMENTE CONFIDENCIAL
-                </p>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-xs text-gray-500 font-mono">
-                ID REF:{" "}
-                <span className="font-bold text-gray-900">
-                  {headerInfo.refId}
-                </span>
-              </div>
-              <div className="text-xs text-gray-500">
-                Fecha: <span>{headerInfo.currentDate}</span>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded text-sm text-blue-800">
-            <strong>Instrucciones:</strong> Complete todas las secciones.
-          </div>
-        </div>
-
-        {/* Secciones y tabla principal */}
-        <div className="grid grid-cols-4 border-b border-gray-300">
-          <div className="cell-header col-span-4 bg-gray-100 text-center border-b border-gray-300">
-            Sección A: Información del Reportante
-          </div>
-          <div className="cell-header">Nombre Completo</div>
-          <div className="cell-data">
-            <input className="cell-input" placeholder="Nombre" />
-          </div>
-          <div className="cell-header">Puesto / Cargo</div>
-          <div className="cell-data">
-            <input className="cell-input" placeholder="Puesto" />
-          </div>
-          <div className="cell-header">No. de Empleado</div>
-          <div className="cell-data">
-            <input className="cell-input" placeholder="ID" />
-          </div>
-          <div className="cell-header">Departamento</div>
-          <div className="cell-data">
-            <input className="cell-input" placeholder="Depto" />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-4 border-b border-gray-300">
-          <div className="cell-header col-span-4 bg-gray-100 text-center border-b border-gray-300">
-            Sección B: Contexto del Incidente
-          </div>
-          <div className="cell-header col-span-1">Naturaleza</div>
-          <div className="cell-data col-span-3">
-            <select
-              className="cell-input cursor-pointer bg-white"
-              defaultValue=""
-            >
-              <option value="" disabled>
-                Seleccione...
-              </option>
-              <option>Acoso</option>
-              <option>Robo</option>
-              <option>Seguridad</option>
-              <option>Otro</option>
-            </select>
-          </div>
-          <div className="cell-header col-span-1">Involucrados</div>
-          <div className="cell-data col-span-3">
-            <input className="cell-input" placeholder="Nombres..." />
-          </div>
-        </div>
-
-        <div>
-          <div className="cell-header bg-gray-100 text-center border-b border-gray-300">
-            Sección C: Bitácora Cronológica
-          </div>
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr>
-                <th className="cell-header">Fecha</th>
-                <th className="cell-header">Hora</th>
-                <th className="cell-header">Ubicación</th>
-                <th className="cell-header">Descripción</th>
-                <th className="cell-header">Testigos</th>
-                <th className="cell-header no-print">Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.id}>
-                  <td className="cell-data">
-                    <input
-                      type="date"
-                      className="cell-input"
-                      value={row.date}
-                      onChange={(e) =>
-                        updateRow(row.id, "date", e.target.value)
-                      }
-                    />
-                  </td>
-                  <td className="cell-data">
-                    <input
-                      type="time"
-                      className="cell-input"
-                      value={row.time}
-                      onChange={(e) =>
-                        updateRow(row.id, "time", e.target.value)
-                      }
-                    />
-                  </td>
-                  <td className="cell-data">
-                    <input
-                      className="cell-input"
-                      value={row.location}
-                      onChange={(e) =>
-                        updateRow(row.id, "location", e.target.value)
-                      }
-                    />
-                  </td>
-                  <td className="cell-data relative group">
-                    <div
-                      className="cell-desc-preview"
-                      onClick={() => openEditor(row.id, row.description)}
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block">1. Incident Category</label>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  {CATEGORIES.map(cat => (
+                    <div key={cat.id}
+                      onClick={() => setFormData({ ...formData, category: cat.id })}
+                      className={`cursor-pointer border-2 rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2 transition-all duration-200 ${formData.category === cat.id ? `border-blue-500 ${cat.bg} shadow-md` : 'border-slate-100 hover:border-slate-300 hover:bg-slate-50'}`}
                     >
-                      {row.description || "Clic para editar..."}
+                      <div className={`p-2 rounded-full ${formData.category === cat.id ? 'bg-white shadow-sm' : 'bg-slate-100'}`}>
+                        <cat.icon size={24} className={formData.category === cat.id ? cat.color : 'text-slate-400'} />
+                      </div>
+                      <span className={`text-[10px] font-bold uppercase tracking-wider ${formData.category === cat.id ? 'text-blue-800' : 'text-slate-500'}`}>{cat.label}</span>
                     </div>
-                  </td>
-                  <td className="cell-data">
-                    <input
-                      className="cell-input"
-                      value={row.witnesses}
-                      onChange={(e) =>
-                        updateRow(row.id, "witnesses", e.target.value)
-                      }
-                    />
-                  </td>
-                  <td className="cell-data text-center no-print flex justify-center gap-1 p-2">
-                    <button
-                      onClick={() =>
-                        setImageModal({ isOpen: true, rowId: row.id })
-                      }
-                      className={`font-bold p-1 rounded ${
-                        row.images.length > 0
-                          ? "text-blue-600 bg-blue-100"
-                          : "text-gray-400"
-                      }`}
-                    >
-                      <Paperclip size={16} />
-                    </button>
-                    <button
-                      onClick={() => removeRow(row.id)}
-                      className="text-red-400 font-bold p-1"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="p-2 bg-gray-50 border-b border-gray-300 no-print">
-            <button
-              onClick={addRow}
-              className="text-sm text-blue-600 font-medium flex items-center gap-1"
-            >
-              <Plus size={16} /> Añadir Fila
-            </button>
-          </div>
-        </div>
-
-        {allEvidence.length > 0 && (
-          <div className="p-6 border-b border-gray-300">
-            <h3 className="text-sm font-bold text-gray-700 uppercase mb-4 border-b pb-2">
-              Anexos: Evidencia
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-              {allEvidence.map((item, idx) => (
-                <div key={idx} className="border p-2 rounded bg-gray-50">
-                  <img
-                    src={item.img}
-                    className="w-full h-48 object-cover rounded"
-                  />
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              {/* Context */}
+              <div>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block border-b border-slate-100 pb-2">2. Context & Timing</label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Date of Incident</label>
+                    <input type="date" name="date" value={formData.date} onChange={handleChange} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition font-medium text-slate-700" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Time</label>
+                    <input type="time" name="time" value={formData.time} onChange={handleChange} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition font-medium text-slate-700" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Specific Location</label>
+                    <input type="text" name="location" placeholder="e.g. Pool Deck" value={formData.location} onChange={handleChange} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition font-medium text-slate-700" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Details */}
+              <div>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block border-b border-slate-100 pb-2">3. Statement of Events</label>
+                <textarea rows="5" name="description" placeholder="Provide a detailed, objective account of what occurred..." value={formData.description} onChange={handleChange} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition text-sm leading-relaxed font-medium text-slate-700"></textarea>
+                <input type="text" name="witnesses" placeholder="Names of any witnesses present (optional)" value={formData.witnesses} onChange={handleChange} className="w-full mt-4 p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition font-medium text-slate-700 text-sm" />
+              </div>
+
+              {/* Evidence Attachments */}
+              <div>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block border-b border-slate-100 pb-2 flex justify-between items-center">
+                  <span>4. Photographic Evidence</span>
+                  <label className="cursor-pointer text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                    <Paperclip size={14} /> Attach Photos
+                    <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageUpload} />
+                  </label>
+                </label>
+                {images.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {images.map((img, idx) => (
+                      <div key={idx} className="relative aspect-video rounded-lg overflow-hidden group shadow-sm border border-slate-200 bg-black">
+                        <img src={img} className="w-full h-full object-cover group-hover:opacity-70 transition" alt="evidence" />
+                        <button onClick={() => removeImage(idx)} className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition shadow-lg hover:bg-red-700 text-xs font-bold">
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-8 text-center text-slate-400 flex flex-col items-center justify-center">
+                    <Paperclip size={24} className="mb-2 opacity-30" />
+                    <span className="text-sm font-medium">No attachments added.</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Veracity & Signature */}
+              <div className="bg-blue-50/50 p-6 rounded-xl border border-blue-100">
+                <h3 className="text-sm font-bold text-slate-800 mb-2">Declaration of Veracity</h3>
+                <p className="text-xs text-slate-500 mb-4 max-w-xl leading-relaxed">By submitting this form and signing below, I certify that the information provided is true and accurate to the best of my knowledge. I understand this constitutes an official internal document.</p>
+                <SignatureCanvas />
+              </div>
+            </div>
+
+            <div className="p-6 bg-slate-50 border-t border-slate-200 flex justify-end">
+              <button onClick={submitReport} disabled={submitting} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition flex items-center gap-2 group w-full md:w-auto justify-center disabled:opacity-70">
+                {submitting ? 'Encrypting & Sending...' : <><Send size={18} className="group-hover:translate-x-1 transition-transform" /> Submit Confidential Report</>}
+              </button>
             </div>
           </div>
         )}
 
-        <div className="p-6 bg-white">
-          <h3 className="text-sm font-bold text-gray-700 uppercase mb-2">
-            Declaración de Veracidad
-          </h3>
-          <div className="flex flex-col md:flex-row gap-8 mt-8">
-            <div className="flex-1">
-              <label className="text-xs text-gray-500 uppercase font-bold mb-1 block">
-                Firma
-              </label>
-              <SignatureCanvas />
-            </div>
-            <div className="w-48">
-              <div className="border-b-2 border-gray-300 mb-2 h-24 flex items-end pb-1">
-                <span className="text-gray-900 w-full text-center">
-                  {headerInfo.currentDate}
-                </span>
+
+        {/* --- ADMIN INBOX VIEW --- */}
+        {viewMode === 'inbox' && isAdmin && (
+          <div className="w-full flex flex-col md:flex-row gap-6 mt-4 items-start">
+
+            {/* Left List */}
+            <div className="w-full md:w-1/3 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col h-[600px] shrink-0">
+              <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <h2 className="font-bold flex items-center gap-2 text-slate-800"><Inbox className="text-blue-600" size={18} /> Active Reports</h2>
+                <span className="bg-slate-200 text-slate-600 text-xs font-bold px-2 py-0.5 rounded-full">{tickets.length}</span>
               </div>
-              <label className="text-xs text-gray-500 uppercase font-bold">
-                Fecha
-              </label>
+              <div className="overflow-y-auto flex-1 divide-y divide-slate-100">
+                {tickets.length === 0 ? (
+                  <div className="p-8 text-center text-slate-400"><CheckCircle size={32} className="mx-auto mb-2 opacity-50" /> Inbox Zero</div>
+                ) : (
+                  tickets.map(tkt => {
+                    const catDef = CATEGORIES.find(c => c.id === tkt.category) || CATEGORIES[4];
+                    const isSelected = activeTicket?.id === tkt.id;
+                    return (
+                      <div key={tkt.id} onClick={() => setActiveTicket(tkt)} className={`p-4 cursor-pointer hover:bg-slate-50 transition border-l-4 ${isSelected ? 'bg-blue-50 border-blue-500' : tkt.status === 'Resolved' ? 'border-green-400 opacity-60 bg-slate-50/50' : 'border-orange-400'}`}>
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`p-1.5 rounded-md ${catDef.bg}`}><catDef.icon size={12} className={catDef.color} /></span>
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{tkt.id}</span>
+                          </div>
+                          <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${tkt.status === 'Resolved' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>{tkt.status}</span>
+                        </div>
+                        <h3 className="font-bold text-slate-800 text-sm truncate">{tkt.location || 'General Report'}</h3>
+                        <p className="text-xs text-slate-500 mt-1 truncate">{tkt.description}</p>
+                        <div className="text-[10px] text-slate-400 font-bold uppercase mt-3 flex justify-between items-center">
+                          <span>By: {tkt.reporter}</span>
+                          <span className="flex items-center gap-1"><Clock size={10} /> {tkt.date}</span>
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
             </div>
-          </div>
-          <div className="mt-10 pt-6 border-t border-gray-100 flex justify-end no-print">
-            <button
-              onClick={handleSubmitReport}
-              className="bg-blue-800 text-white px-8 py-3 rounded shadow hover:bg-blue-900 font-bold flex items-center gap-2"
-            >
-              <Check size={20} /> Enviar Reporte
-            </button>
-          </div>
-        </div>
-      </div>
 
-      {modal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-white rounded-lg w-full max-w-2xl p-4">
-            <textarea
-              value={modal.text}
-              onChange={(e) =>
-                setModal({ ...modal, text: e.target.value })
-              }
-              className="w-full h-64 border p-2 mb-4"
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setModal({ ...modal, isOpen: false })}
-                className="px-4 py-2 border rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={saveModal}
-                className="px-4 py-2 bg-blue-600 text-white rounded"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {imageModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-white rounded-lg w-full max-w-md p-4">
-            <label className="block w-full cursor-pointer bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-6 text-center">
-              <span className="text-blue-700">Subir imágenes</span>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageUpload}
-              />
-            </label>
-            <div className="grid grid-cols-3 gap-2 mt-4 max-h-60 overflow-y-auto">
-              {rows
-                .find((r) => r.id === imageModal.rowId)
-                ?.images.map((img, idx) => (
-                  <div key={idx} className="relative group">
-                    <img
-                      src={img}
-                      className="w-full h-full object-cover rounded"
-                    />
-                    <button
-                      onClick={() => removeImage(imageModal.rowId, idx)}
-                      className="absolute top-0 right-0 bg-red-600 text-white rounded-full p-1"
-                    >
-                      <X size={10} />
-                    </button>
+            {/* Right Active Ticket */}
+            <div className="flex-1 w-full relative">
+              {!activeTicket ? (
+                <div className="bg-white border border-slate-200 border-dashed rounded-xl h-[600px] flex flex-col items-center justify-center text-slate-400">
+                  <Inbox size={48} className="mb-4 opacity-20" />
+                  <p className="font-bold text-lg">Select a report to review</p>
+                </div>
+              ) : (
+                <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
+                  <div className="bg-slate-800 text-white p-6 relative">
+                    <div className="flex justify-between items-start z-10 relative">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="bg-blue-500/20 text-blue-200 border border-blue-500/50 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">{activeTicket.id}</span>
+                          <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${activeTicket.status === 'Resolved' ? 'bg-green-500/20 text-green-300 border border-green-500/50' : 'bg-orange-500/20 text-orange-300 border border-orange-500/50'}`}>{activeTicket.status}</span>
+                        </div>
+                        <h2 className="text-2xl font-black">{activeTicket.location || 'General Report'}</h2>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold">{activeTicket.reporter}</p>
+                        <p className="text-xs text-slate-400 flex items-center justify-end gap-1 mt-1"><Clock size={12} /> {activeTicket.date} - {activeTicket.time}</p>
+                      </div>
+                    </div>
                   </div>
-                ))}
+
+                  <div className="p-6 space-y-6">
+                    <div>
+                      <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-2">Description of Events</h3>
+                      <p className="text-slate-700 leading-relaxed text-sm bg-slate-50 p-4 rounded-lg border border-slate-100">{activeTicket.description}</p>
+                    </div>
+
+                    {activeTicket.witnesses && activeTicket.witnesses !== 'None' && (
+                      <div>
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-2">Cited Witnesses</h3>
+                        <p className="text-sm font-bold text-slate-600">{activeTicket.witnesses}</p>
+                      </div>
+                    )}
+
+                    <div className={`mt-8 p-6 rounded-xl border ${activeTicket.status === 'Resolved' ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200'}`}>
+                      <h3 className="font-bold text-sm mb-3 flex items-center gap-2 uppercase tracking-wide">
+                        {activeTicket.status === 'Resolved' ? <><CheckCircle size={16} className="text-green-600" /> Resolution Log</> : <><Wrench size={16} className="text-orange-600" /> Admin Action Required</>}
+                      </h3>
+
+                      {activeTicket.status === 'Resolved' ? (
+                        <p className="text-sm text-slate-700">{activeTicket.resolutionNotes}</p>
+                      ) : (
+                        <div className="space-y-3">
+                          <textarea
+                            placeholder="Document the resolution steps taken to close this report..."
+                            className="w-full p-3 border border-orange-300 rounded outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                            rows="3"
+                            value={activeTicket.resolutionNotes || ''}
+                            onChange={e => setActiveTicket({ ...activeTicket, resolutionNotes: e.target.value })}
+                          ></textarea>
+                          <button onClick={resolveTicket} className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 px-6 rounded shadow transition flex items-center gap-2 justify-center w-full">
+                            <CheckCircle size={18} /> Mark as Resolved & Close
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                </div>
+              )}
             </div>
-            <button
-              onClick={() => setImageModal({ isOpen: false, rowId: null })}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded w-full"
-            >
-              Listo
-            </button>
+
           </div>
-        </div>
-      )}
+        )}
+      </main>
     </div>
   );
 }
-

@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  AlertTriangle, 
-  FileText, 
-  BookOpen, 
-  Calendar, 
-  Activity, 
-  Clock, 
-  Users, 
-  Home, 
+import {
+  AlertTriangle,
+  FileText,
+  BookOpen,
+  Calendar,
+  Activity,
+  Clock,
+  Users,
+  Home,
   ClipboardList,
   LogOut,
   ChevronLeft,
@@ -32,9 +32,10 @@ import {
   Lock,
   Search
 } from 'lucide-react';
+import ModuleIncidentReport from '../modules/moduleIncidentReport';
 
 /* --- CONFIGURATION --- */
-const API_URL = "YOUR_N8N_WEBHOOK_URL_HERE"; 
+const API_URL = "YOUR_N8N_WEBHOOK_URL_HERE";
 
 const COLOR_PALETTE = [
   { name: 'Red', hex: '#ef4444' },
@@ -48,13 +49,13 @@ const COLOR_PALETTE = [
   { name: 'Magenta', hex: '#d946ef' },
   { name: 'Yellow-Green', hex: '#84cc16' },
   { name: 'Black', hex: '#1f2937' },
-  { name: 'White', hex: '#ffffff' }, 
+  { name: 'White', hex: '#ffffff' },
   { name: 'Purple', hex: '#9333ea' }
 ];
 
 const MODULE_CONFIG = {
   // Base Modules
-  buzon: { title: "Buzón RH", id: "buzon", icon: <Inbox size={24} />, color: "#e74c3c" }, 
+  buzon: { title: "Buzón RH", id: "buzon", icon: <Inbox size={24} />, color: "#e74c3c" },
   incident_report: { title: "Incident Reports", id: "incident_report", icon: <FileText size={24} />, color: "#e67e22" },
   training_manuals: { title: "Training Manuals", id: "training_manuals", icon: <BookOpen size={24} />, color: "#27ae60" },
   check_schedule: { title: "My Schedule", id: "check_schedule", icon: <Calendar size={24} />, color: "#2980b9" },
@@ -79,11 +80,11 @@ const formatDateDDMMYYYY = (dateObj) => {
 };
 
 const formatDateForInput = (dateObj) => {
-   if (!dateObj) return '';
-   const year = dateObj.getFullYear();
-   const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-   const day = String(dateObj.getDate()).padStart(2, '0');
-   return `${year}-${month}-${day}`;
+  if (!dateObj) return '';
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 /* --- COMPONENTS --- */
@@ -99,10 +100,10 @@ const SignatureCanvas = () => {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    
+
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    
+
     return {
       x: (clientX - rect.left) * scaleX,
       y: (clientY - rect.top) * scaleY
@@ -111,19 +112,19 @@ const SignatureCanvas = () => {
 
   const startDrawing = (e) => {
     // Prevent scrolling on touch devices while drawing
-    if(e.cancelable) e.preventDefault();
+    if (e.cancelable) e.preventDefault();
     setIsDrawing(true);
     const ctx = canvasRef.current.getContext('2d');
     const { x, y } = getCoords(e);
     ctx.lineWidth = 3;
     ctx.lineCap = 'round';
-    ctx.strokeStyle = '#1e3a8a'; 
+    ctx.strokeStyle = '#1e3a8a';
     ctx.beginPath();
     ctx.moveTo(x, y);
   };
 
   const draw = (e) => {
-    if(e.cancelable) e.preventDefault();
+    if (e.cancelable) e.preventDefault();
     if (!isDrawing) return;
     const ctx = canvasRef.current.getContext('2d');
     const { x, y } = getCoords(e);
@@ -142,10 +143,10 @@ const SignatureCanvas = () => {
     <div className="w-full">
       <div className="border-b-2 border-gray-400 bg-gray-50/50 relative">
         {/* Set internal resolution high (e.g. 600) but let CSS control display width */}
-        <canvas 
-          ref={canvasRef} 
-          width={600} 
-          height={150} 
+        <canvas
+          ref={canvasRef}
+          width={600}
+          height={150}
           className="w-full h-32 touch-none cursor-crosshair block"
           onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseLeave={stopDrawing}
           onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={stopDrawing}
@@ -223,7 +224,7 @@ const Dashboard = ({ user, onLogout, onNavigate }) => {
             <span className="text-xs text-gray-500 block">{user.role}</span>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <button onClick={() => setShowSettings(!showSettings)} className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 relative">
             <Settings size={22} />
@@ -291,15 +292,15 @@ const StaffManagement = ({ onBack }) => {
         <div className="p-4 border-b bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
-            <input 
-              className="pl-10 pr-4 py-2 border rounded-lg w-full text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+            <input
+              className="pl-10 pr-4 py-2 border rounded-lg w-full text-sm focus:ring-2 focus:ring-blue-500 outline-none"
               placeholder="Search staff..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
           <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-blue-700">
-            <Plus size={16}/> Add Staff
+            <Plus size={16} /> Add Staff
           </button>
         </div>
 
@@ -329,9 +330,9 @@ const StaffManagement = ({ onBack }) => {
                     </button>
                   </td>
                   <td className="px-6 py-4 text-right flex justify-end gap-2">
-                    <button onClick={() => setEditModal({ isOpen: true, user: {...s} })} className="p-1 text-gray-500 hover:text-blue-600" title="Edit Access"><UserCog size={18}/></button>
-                    <button className="p-1 text-gray-500 hover:text-orange-500" title="Reset Password"><Lock size={18}/></button>
-                    <button className="p-1 text-gray-500 hover:text-green-600" title="View Logs"><Activity size={18}/></button>
+                    <button onClick={() => setEditModal({ isOpen: true, user: { ...s } })} className="p-1 text-gray-500 hover:text-blue-600" title="Edit Access"><UserCog size={18} /></button>
+                    <button className="p-1 text-gray-500 hover:text-orange-500" title="Reset Password"><Lock size={18} /></button>
+                    <button className="p-1 text-gray-500 hover:text-green-600" title="View Logs"><Activity size={18} /></button>
                   </td>
                 </tr>
               ))}
@@ -345,12 +346,12 @@ const StaffManagement = ({ onBack }) => {
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-bold mb-4">Edit Staff Access</h3>
             <div className="space-y-3">
-              <div><label className="text-xs font-bold text-gray-500">Name</label><input className="w-full border p-2 rounded" value={editModal.user.name} onChange={e => setEditModal({...editModal, user: {...editModal.user, name: e.target.value}})} /></div>
-              <div><label className="text-xs font-bold text-gray-500">Role</label><input className="w-full border p-2 rounded" value={editModal.user.role} onChange={e => setEditModal({...editModal, user: {...editModal.user, role: e.target.value}})} /></div>
-              <div><label className="text-xs font-bold text-gray-500">Email</label><input className="w-full border p-2 rounded" value={editModal.user.email} onChange={e => setEditModal({...editModal, user: {...editModal.user, email: e.target.value}})} /></div>
+              <div><label className="text-xs font-bold text-gray-500">Name</label><input className="w-full border p-2 rounded" value={editModal.user.name} onChange={e => setEditModal({ ...editModal, user: { ...editModal.user, name: e.target.value } })} /></div>
+              <div><label className="text-xs font-bold text-gray-500">Role</label><input className="w-full border p-2 rounded" value={editModal.user.role} onChange={e => setEditModal({ ...editModal, user: { ...editModal.user, role: e.target.value } })} /></div>
+              <div><label className="text-xs font-bold text-gray-500">Email</label><input className="w-full border p-2 rounded" value={editModal.user.email} onChange={e => setEditModal({ ...editModal, user: { ...editModal.user, email: e.target.value } })} /></div>
             </div>
             <div className="mt-6 flex justify-end gap-2">
-              <button onClick={() => setEditModal({isOpen: false, user: null})} className="px-4 py-2 border rounded">Cancel</button>
+              <button onClick={() => setEditModal({ isOpen: false, user: null })} className="px-4 py-2 border rounded">Cancel</button>
               <button onClick={handleSaveUser} className="px-4 py-2 bg-blue-600 text-white rounded">Save Changes</button>
             </div>
           </div>
@@ -373,7 +374,7 @@ const Buzon = ({ onBack }) => {
   const openEditor = (id, currentText) => setModal({ isOpen: true, rowId: id, text: currentText });
   const saveModal = () => { updateRow(modal.rowId, 'description', modal.text); setModal({ ...modal, isOpen: false }); };
   const clearForm = () => { if (window.confirm('¿Está seguro de que desea borrar todo el formulario?')) { setRows([{ id: 1, date: '', time: '', location: '', description: '', witnesses: '', images: [] }]); const inputs = document.querySelectorAll('.cell-input'); inputs.forEach(input => input.value = ''); } };
-  
+
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
@@ -392,12 +393,12 @@ const Buzon = ({ onBack }) => {
   return (
     <div className="module-page bg-gray-100 min-h-screen">
       <div className="max-w-5xl mx-auto p-4 flex justify-between items-center no-print">
-         <div><h1 className="text-2xl font-bold text-gray-800">Bitácora Confidencial de Incidentes</h1><p className="text-sm text-gray-500">Documento Interno Seguro • Formulario RH-902</p></div>
-         <div className="flex gap-3">
-            <button onClick={onBack} className="px-4 py-2 text-sm bg-white border rounded hover:bg-gray-50 flex items-center gap-2"><ChevronLeft size={16}/> Volver</button>
-            <button onClick={clearForm} className="px-4 py-2 text-sm text-red-600 bg-white border border-red-200 rounded hover:bg-red-50">Borrar Formulario</button>
-            <button onClick={() => window.print()} className="px-4 py-2 text-sm text-white bg-blue-600 rounded flex items-center gap-2"><Printer size={16} /> Imprimir / PDF</button>
-         </div>
+        <div><h1 className="text-2xl font-bold text-gray-800">Bitácora Confidencial de Incidentes</h1><p className="text-sm text-gray-500">Documento Interno Seguro • Formulario RH-902</p></div>
+        <div className="flex gap-3">
+          <button onClick={onBack} className="px-4 py-2 text-sm bg-white border rounded hover:bg-gray-50 flex items-center gap-2"><ChevronLeft size={16} /> Volver</button>
+          <button onClick={clearForm} className="px-4 py-2 text-sm text-red-600 bg-white border border-red-200 rounded hover:bg-red-50">Borrar Formulario</button>
+          <button onClick={() => window.print()} className="px-4 py-2 text-sm text-white bg-blue-600 rounded flex items-center gap-2"><Printer size={16} /> Imprimir / PDF</button>
+        </div>
       </div>
       <div className="max-w-5xl mx-auto bg-white sheet-container border border-gray-300 mb-8">
         <div className="p-6 border-b border-gray-300 bg-gray-50">
@@ -408,19 +409,19 @@ const Buzon = ({ onBack }) => {
           <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded text-sm text-blue-800"><strong>Instrucciones:</strong> Complete todas las secciones.</div>
         </div>
         <div className="grid grid-cols-4 border-b border-gray-300">
-           <div className="cell-header col-span-4 bg-gray-100 text-center border-b border-gray-300">Sección A: Información del Reportante</div>
-           <div className="cell-header">Nombre Completo</div><div className="cell-data"><input className="cell-input" placeholder="Nombre" /></div>
-           <div className="cell-header">Puesto / Cargo</div><div className="cell-data"><input className="cell-input" placeholder="Puesto" /></div>
-           <div className="cell-header">No. de Empleado</div><div className="cell-data"><input className="cell-input" placeholder="ID" /></div>
-           <div className="cell-header">Departamento</div><div className="cell-data"><input className="cell-input" placeholder="Depto" /></div>
+          <div className="cell-header col-span-4 bg-gray-100 text-center border-b border-gray-300">Sección A: Información del Reportante</div>
+          <div className="cell-header">Nombre Completo</div><div className="cell-data"><input className="cell-input" placeholder="Nombre" /></div>
+          <div className="cell-header">Puesto / Cargo</div><div className="cell-data"><input className="cell-input" placeholder="Puesto" /></div>
+          <div className="cell-header">No. de Empleado</div><div className="cell-data"><input className="cell-input" placeholder="ID" /></div>
+          <div className="cell-header">Departamento</div><div className="cell-data"><input className="cell-input" placeholder="Depto" /></div>
         </div>
         <div className="grid grid-cols-4 border-b border-gray-300">
-           <div className="cell-header col-span-4 bg-gray-100 text-center border-b border-gray-300">Sección B: Contexto del Incidente</div>
-           <div className="cell-header col-span-1">Naturaleza</div>
-           <div className="cell-data col-span-3">
-              <select className="cell-input cursor-pointer bg-white" defaultValue=""><option value="" disabled>Seleccione...</option><option>Acoso</option><option>Robo</option><option>Seguridad</option><option>Otro</option></select>
-           </div>
-           <div className="cell-header col-span-1">Involucrados</div><div className="cell-data col-span-3"><input className="cell-input" placeholder="Nombres..." /></div>
+          <div className="cell-header col-span-4 bg-gray-100 text-center border-b border-gray-300">Sección B: Contexto del Incidente</div>
+          <div className="cell-header col-span-1">Naturaleza</div>
+          <div className="cell-data col-span-3">
+            <select className="cell-input cursor-pointer bg-white" defaultValue=""><option value="" disabled>Seleccione...</option><option>Acoso</option><option>Robo</option><option>Seguridad</option><option>Otro</option></select>
+          </div>
+          <div className="cell-header col-span-1">Involucrados</div><div className="cell-data col-span-3"><input className="cell-input" placeholder="Nombres..." /></div>
         </div>
         <div>
           <div className="cell-header bg-gray-100 text-center border-b border-gray-300">Sección C: Bitácora Cronológica</div>
@@ -449,24 +450,24 @@ const Buzon = ({ onBack }) => {
             <h3 className="text-sm font-bold text-gray-700 uppercase mb-4 border-b pb-2">Anexos: Evidencia</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
               {allEvidence.map((item, idx) => (
-                <div key={idx} className="border p-2 rounded bg-gray-50"><img src={item.img} className="w-full h-48 object-cover rounded"/></div>
+                <div key={idx} className="border p-2 rounded bg-gray-50"><img src={item.img} className="w-full h-48 object-cover rounded" /></div>
               ))}
             </div>
           </div>
         )}
         <div className="p-6 bg-white">
-           <h3 className="text-sm font-bold text-gray-700 uppercase mb-2">Declaración de Veracidad</h3>
-           <div className="flex flex-col md:flex-row gap-8 mt-8">
-              <div className="flex-1"><label className="text-xs text-gray-500 uppercase font-bold mb-1 block">Firma</label><SignatureCanvas /></div>
-              <div className="w-48"><div className="border-b-2 border-gray-300 mb-2 h-24 flex items-end pb-1"><span className="text-gray-900 w-full text-center">{headerInfo.currentDate}</span></div><label className="text-xs text-gray-500 uppercase font-bold">Fecha</label></div>
-           </div>
-           <div className="mt-10 pt-6 border-t border-gray-100 flex justify-end no-print">
-              <button onClick={handleSubmitReport} className="bg-blue-800 text-white px-8 py-3 rounded shadow hover:bg-blue-900 font-bold flex items-center gap-2"><Check size={20} /> Enviar Reporte</button>
-           </div>
+          <h3 className="text-sm font-bold text-gray-700 uppercase mb-2">Declaración de Veracidad</h3>
+          <div className="flex flex-col md:flex-row gap-8 mt-8">
+            <div className="flex-1"><label className="text-xs text-gray-500 uppercase font-bold mb-1 block">Firma</label><SignatureCanvas /></div>
+            <div className="w-48"><div className="border-b-2 border-gray-300 mb-2 h-24 flex items-end pb-1"><span className="text-gray-900 w-full text-center">{headerInfo.currentDate}</span></div><label className="text-xs text-gray-500 uppercase font-bold">Fecha</label></div>
+          </div>
+          <div className="mt-10 pt-6 border-t border-gray-100 flex justify-end no-print">
+            <button onClick={handleSubmitReport} className="bg-blue-800 text-white px-8 py-3 rounded shadow hover:bg-blue-900 font-bold flex items-center gap-2"><Check size={20} /> Enviar Reporte</button>
+          </div>
         </div>
       </div>
-      {modal.isOpen && <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"><div className="bg-white rounded-lg w-full max-w-2xl p-4"><textarea value={modal.text} onChange={(e) => setModal({...modal, text: e.target.value})} className="w-full h-64 border p-2 mb-4"/><div className="flex justify-end gap-2"><button onClick={() => setModal({...modal, isOpen: false})} className="px-4 py-2 border rounded">Cancel</button><button onClick={saveModal} className="px-4 py-2 bg-blue-600 text-white rounded">Save</button></div></div></div>}
-      {imageModal.isOpen && <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"><div className="bg-white rounded-lg w-full max-w-md p-4"><label className="block w-full cursor-pointer bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-6 text-center"><span className="text-blue-700">Subir imágenes</span><input type="file" multiple accept="image/*" className="hidden" onChange={handleImageUpload} /></label><div className="grid grid-cols-3 gap-2 mt-4 max-h-60 overflow-y-auto">{rows.find(r => r.id === imageModal.rowId)?.images.map((img, idx) => (<div key={idx} className="relative group"><img src={img} className="w-full h-full object-cover rounded"/><button onClick={() => removeImage(imageModal.rowId, idx)} className="absolute top-0 right-0 bg-red-600 text-white rounded-full p-1"><X size={10}/></button></div>))}</div><button onClick={() => setImageModal({ isOpen: false, rowId: null })} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded w-full">Listo</button></div></div>}
+      {modal.isOpen && <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"><div className="bg-white rounded-lg w-full max-w-2xl p-4"><textarea value={modal.text} onChange={(e) => setModal({ ...modal, text: e.target.value })} className="w-full h-64 border p-2 mb-4" /><div className="flex justify-end gap-2"><button onClick={() => setModal({ ...modal, isOpen: false })} className="px-4 py-2 border rounded">Cancel</button><button onClick={saveModal} className="px-4 py-2 bg-blue-600 text-white rounded">Save</button></div></div></div>}
+      {imageModal.isOpen && <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"><div className="bg-white rounded-lg w-full max-w-md p-4"><label className="block w-full cursor-pointer bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-6 text-center"><span className="text-blue-700">Subir imágenes</span><input type="file" multiple accept="image/*" className="hidden" onChange={handleImageUpload} /></label><div className="grid grid-cols-3 gap-2 mt-4 max-h-60 overflow-y-auto">{rows.find(r => r.id === imageModal.rowId)?.images.map((img, idx) => (<div key={idx} className="relative group"><img src={img} className="w-full h-full object-cover rounded" /><button onClick={() => removeImage(imageModal.rowId, idx)} className="absolute top-0 right-0 bg-red-600 text-white rounded-full p-1"><X size={10} /></button></div>))}</div><button onClick={() => setImageModal({ isOpen: false, rowId: null })} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded w-full">Listo</button></div></div>}
     </div>
   );
 };
@@ -476,13 +477,13 @@ const RoleManager = ({ isOpen, onClose, roles, setRoles }) => {
   const [newRoleName, setNewRoleName] = useState('');
   const [newRoleColor, setNewRoleColor] = useState('#000000');
   if (!isOpen) return null;
-  const addRole = () => { if(!newRoleName) return; setRoles(prev => [...prev, { id: 'R_' + Date.now(), name: newRoleName, color: newRoleColor }]); setNewRoleName(''); };
+  const addRole = () => { if (!newRoleName) return; setRoles(prev => [...prev, { id: 'R_' + Date.now(), name: newRoleName, color: newRoleColor }]); setNewRoleName(''); };
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
         <div className="flex justify-between items-center mb-4"><h3 className="text-lg font-bold">Manage Roles</h3><button onClick={onClose}><X size={20} /></button></div>
         <div className="bg-gray-50 p-3 rounded mb-4 border"><input type="text" className="border rounded px-2 py-1 text-sm w-full mb-2" placeholder="Role Name" value={newRoleName} onChange={e => setNewRoleName(e.target.value)} /><div className="flex flex-wrap gap-2 mb-2">{COLOR_PALETTE.map(c => (<button key={c.hex} onClick={() => setNewRoleColor(c.hex)} className={`w-6 h-6 rounded-full border ${newRoleColor === c.hex ? 'ring-2' : ''}`} style={{ backgroundColor: c.hex }} />))}</div><button onClick={addRole} className="w-full bg-blue-600 text-white text-sm py-1 rounded">Add Role</button></div>
-        <div className="max-h-60 overflow-y-auto space-y-2">{roles.map(r => (<div key={r.id} className="flex justify-between items-center p-2 border rounded bg-white"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full" style={{ backgroundColor: r.color }}></div><span className="text-sm font-medium">{r.name}</span></div><button onClick={() => setRoles(prev => prev.filter(x => x.id !== r.id))} className="text-red-400 hover:text-red-600"><Trash2 size={16}/></button></div>))}</div>
+        <div className="max-h-60 overflow-y-auto space-y-2">{roles.map(r => (<div key={r.id} className="flex justify-between items-center p-2 border rounded bg-white"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full" style={{ backgroundColor: r.color }}></div><span className="text-sm font-medium">{r.name}</span></div><button onClick={() => setRoles(prev => prev.filter(x => x.id !== r.id))} className="text-red-400 hover:text-red-600"><Trash2 size={16} /></button></div>))}</div>
       </div>
     </div>
   );
@@ -491,9 +492,9 @@ const RoleManager = ({ isOpen, onClose, roles, setRoles }) => {
 // 6. Schedule Generator Module
 const ScheduleGenerator = ({ user, onBack, mode = 'personal', requests, setRequests, shifts, setShifts }) => {
   const isMasterMode = user.role === 'Resort Manager' && mode === 'master';
-  
+
   const [viewDate, setViewDate] = useState(new Date());
-  
+
   const [roles, setRoles] = useState([
     { id: 'R1', name: 'Laundry AM', color: '#eab308' },
     { id: 'R2', name: 'Beach PM', color: '#06b6d4' },
@@ -514,8 +515,8 @@ const ScheduleGenerator = ({ user, onBack, mode = 'personal', requests, setReque
   const [selectedStaff, setSelectedStaff] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
   const [payRate, setPayRate] = useState('');
-  const [assignMonth, setAssignMonth] = useState(new Date()); 
-  const [selectedDates, setSelectedDates] = useState(new Set()); 
+  const [assignMonth, setAssignMonth] = useState(new Date());
+  const [selectedDates, setSelectedDates] = useState(new Set());
 
   const [shiftEditModal, setShiftEditModal] = useState({ isOpen: false, shift: null });
   const [requestEditModal, setRequestEditModal] = useState({ isOpen: false, request: null });
@@ -530,7 +531,7 @@ const ScheduleGenerator = ({ user, onBack, mode = 'personal', requests, setReque
   const [filterType, setFilterType] = useState('all');
 
   useEffect(() => {
-    if(isMasterMode) setViewDate(new Date(assignMonth));
+    if (isMasterMode) setViewDate(new Date(assignMonth));
   }, [assignMonth, isMasterMode]);
 
   useEffect(() => {
@@ -605,7 +606,7 @@ const ScheduleGenerator = ({ user, onBack, mode = 'personal', requests, setReque
   const selectAllMiniCalendar = () => {
     const days = getMiniCalendarDays(assignMonth).filter(d => d);
     const newSet = new Set(selectedDates);
-    days.forEach(d => newSet.add(formatDateForInput(d))); 
+    days.forEach(d => newSet.add(formatDateForInput(d)));
     setSelectedDates(newSet);
   };
 
@@ -637,8 +638,8 @@ const ScheduleGenerator = ({ user, onBack, mode = 'personal', requests, setReque
           setShifts(prev => [...prev, { id: Math.random(), empId: req.empId, date: req.date, roleId: dayOffRole.id, type: 'Full', pay: 0, status: 'active' }]);
         }
       } else if (req.type === 'Transport') {
-         let transportRole = roles.find(r => r.name === 'Transport') || roles[0];
-         setShifts(prev => [...prev, { id: Math.random(), empId: req.empId, date: req.date, roleId: transportRole.id, type: 'Transport', pay: 0, status: 'active' }]);
+        let transportRole = roles.find(r => r.name === 'Transport') || roles[0];
+        setShifts(prev => [...prev, { id: Math.random(), empId: req.empId, date: req.date, roleId: transportRole.id, type: 'Transport', pay: 0, status: 'active' }]);
       }
     }
   };
@@ -658,74 +659,74 @@ const ScheduleGenerator = ({ user, onBack, mode = 'personal', requests, setReque
       {/* STICKY TOP HEADER + TOOLBAR */}
       <div className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm px-4 py-3 no-print">
         <div className="max-w-7xl mx-auto flex flex-wrap md:flex-nowrap justify-between items-center gap-3">
-            {/* Left: Back & Identity */}
-            <div className="flex items-center gap-3">
-                <button onClick={onBack} className="text-gray-500 hover:text-gray-800"><ChevronLeft size={24} /></button>
-                <div>
-                    <h2 className="text-lg font-bold text-gray-800 leading-none">{isMasterMode ? "Master Schedule" : "My Schedule"}</h2>
-                    <p className="text-xs text-blue-600 font-bold">{user.employeename}</p>
-                </div>
+          {/* Left: Back & Identity */}
+          <div className="flex items-center gap-3">
+            <button onClick={onBack} className="text-gray-500 hover:text-gray-800"><ChevronLeft size={24} /></button>
+            <div>
+              <h2 className="text-lg font-bold text-gray-800 leading-none">{isMasterMode ? "Master Schedule" : "My Schedule"}</h2>
+              <p className="text-xs text-blue-600 font-bold">{user.employeename}</p>
+            </div>
+          </div>
+
+          {/* Center/Right: Controls */}
+          <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar">
+            {/* Date Nav */}
+            <div className="flex items-center bg-gray-100 rounded-lg border border-gray-200 p-0.5">
+              <button onClick={() => isMasterMode ? handleAssignMonthNav(-1) : handlePersonalShiftTime(-1)} className="p-1.5 hover:bg-white rounded shadow-sm text-gray-600"><ChevronLeft size={16} /></button>
+              <span className="text-xs font-bold w-24 text-center truncate px-2">
+                {isMasterMode
+                  ? assignMonth.toLocaleString('default', { month: 'short', year: 'numeric' })
+                  : viewDate.toLocaleString('default', { month: 'short', year: 'numeric' })
+                }
+              </span>
+              <button onClick={() => isMasterMode ? handleAssignMonthNav(1) : handlePersonalShiftTime(1)} className="p-1.5 hover:bg-white rounded shadow-sm text-gray-600"><ChevronRight size={16} /></button>
             </div>
 
-            {/* Center/Right: Controls */}
-            <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar">
-                {/* Date Nav */}
-                <div className="flex items-center bg-gray-100 rounded-lg border border-gray-200 p-0.5">
-                    <button onClick={() => isMasterMode ? handleAssignMonthNav(-1) : handlePersonalShiftTime(-1)} className="p-1.5 hover:bg-white rounded shadow-sm text-gray-600"><ChevronLeft size={16}/></button>
-                    <span className="text-xs font-bold w-24 text-center truncate px-2">
-                        {isMasterMode 
-                            ? assignMonth.toLocaleString('default', { month: 'short', year: 'numeric' })
-                            : viewDate.toLocaleString('default', { month: 'short', year: 'numeric' })
-                        }
-                    </span>
-                    <button onClick={() => isMasterMode ? handleAssignMonthNav(1) : handlePersonalShiftTime(1)} className="p-1.5 hover:bg-white rounded shadow-sm text-gray-600"><ChevronRight size={16}/></button>
-                </div>
+            <div className="h-6 w-px bg-gray-300 mx-1 hidden md:block"></div>
 
-                <div className="h-6 w-px bg-gray-300 mx-1 hidden md:block"></div>
+            {/* Filters */}
+            {!isMasterMode && (
+              <div className="flex bg-gray-100 p-0.5 rounded-lg border border-gray-200">
+                <button onClick={() => setViewScope('personal')} className={`px-2 py-1 text-[10px] font-bold rounded ${viewScope === 'personal' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}>Me</button>
+                <button onClick={() => setViewScope('full')} className={`px-2 py-1 text-[10px] font-bold rounded ${viewScope === 'full' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}>All</button>
+              </div>
+            )}
 
-                {/* Filters */}
-                {!isMasterMode && (
-                    <div className="flex bg-gray-100 p-0.5 rounded-lg border border-gray-200">
-                        <button onClick={() => setViewScope('personal')} className={`px-2 py-1 text-[10px] font-bold rounded ${viewScope === 'personal' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}>Me</button>
-                        <button onClick={() => setViewScope('full')} className={`px-2 py-1 text-[10px] font-bold rounded ${viewScope === 'full' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}>All</button>
-                    </div>
-                )}
-                
-                <select className="text-xs border border-gray-300 rounded-lg px-2 py-1.5 bg-white focus:outline-none" value={filterRole} onChange={(e) => setFilterRole(e.target.value)}>
-                    <option value="all">Roles: All</option>
-                    {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-                </select>
-                
-                 {/* Only show type filter on larger screens or make it an icon menu later? For now keep select */}
-                <select className="text-xs border border-gray-300 rounded-lg px-2 py-1.5 bg-white focus:outline-none hidden sm:block" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-                    <option value="all">Types: All</option>
-                    <option value="Full">Full</option>
-                    <option value="Half">Half</option>
-                    <option value="Transport">Transport</option>
-                </select>
-            </div>
+            <select className="text-xs border border-gray-300 rounded-lg px-2 py-1.5 bg-white focus:outline-none" value={filterRole} onChange={(e) => setFilterRole(e.target.value)}>
+              <option value="all">Roles: All</option>
+              {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+            </select>
+
+            {/* Only show type filter on larger screens or make it an icon menu later? For now keep select */}
+            <select className="text-xs border border-gray-300 rounded-lg px-2 py-1.5 bg-white focus:outline-none hidden sm:block" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+              <option value="all">Types: All</option>
+              <option value="Full">Full</option>
+              <option value="Half">Half</option>
+              <option value="Transport">Transport</option>
+            </select>
+          </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto p-4 md:p-6">
         {isMasterMode && (
           <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6">
-            <div className="flex justify-between items-center mb-4"><h3 className="text-sm font-bold text-blue-800 uppercase flex items-center gap-2"><Briefcase size={16}/> Assign Shifts</h3><button onClick={() => setIsRoleModalOpen(true)} className="text-xs flex items-center gap-1 bg-white border border-blue-300 text-blue-700 px-2 py-1 rounded shadow-sm hover:bg-blue-50"><Settings size={12}/> Manage Roles</button></div>
+            <div className="flex justify-between items-center mb-4"><h3 className="text-sm font-bold text-blue-800 uppercase flex items-center gap-2"><Briefcase size={16} /> Assign Shifts</h3><button onClick={() => setIsRoleModalOpen(true)} className="text-xs flex items-center gap-1 bg-white border border-blue-300 text-blue-700 px-2 py-1 rounded shadow-sm hover:bg-blue-50"><Settings size={12} /> Manage Roles</button></div>
             <div className="flex flex-col lg:flex-row gap-6">
               <div className="w-full lg:w-1/3 flex flex-col gap-4">
-                 <div><label className="text-xs font-bold text-gray-600 block mb-1">Employee</label><select className="w-full border p-2 rounded text-sm bg-white" value={selectedStaff} onChange={e => setSelectedStaff(e.target.value)}><option value="">Select Staff...</option>{staffList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
-                 <div><label className="text-xs font-bold text-gray-600 block mb-1">Role</label><select className="w-full border p-2 rounded text-sm bg-white" value={selectedRole} onChange={e => setSelectedRole(e.target.value)}><option value="">Select Role...</option>{roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></div>
-                 <div><label className="text-xs font-bold text-gray-600 block mb-1">Pay Rate ($/hr)</label><input type="number" className="w-full border p-2 rounded text-sm" placeholder="0.00" value={payRate} onChange={e => setPayRate(e.target.value)} /></div>
+                <div><label className="text-xs font-bold text-gray-600 block mb-1">Employee</label><select className="w-full border p-2 rounded text-sm bg-white" value={selectedStaff} onChange={e => setSelectedStaff(e.target.value)}><option value="">Select Staff...</option>{staffList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
+                <div><label className="text-xs font-bold text-gray-600 block mb-1">Role</label><select className="w-full border p-2 rounded text-sm bg-white" value={selectedRole} onChange={e => setSelectedRole(e.target.value)}><option value="">Select Role...</option>{roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></div>
+                <div><label className="text-xs font-bold text-gray-600 block mb-1">Pay Rate ($/hr)</label><input type="number" className="w-full border p-2 rounded text-sm" placeholder="0.00" value={payRate} onChange={e => setPayRate(e.target.value)} /></div>
               </div>
               <div className="w-full lg:w-2/3">
-                 <div className="w-full sm:w-72 bg-white border border-gray-300 rounded p-2 shadow-sm mx-auto lg:mx-0">
-                    <div className="flex justify-between items-center mb-2"><button onClick={() => handleAssignMonthNav(-1)} className="p-1 hover:bg-gray-100 rounded"><ChevronLeft size={16}/></button><span className="text-xs font-bold uppercase tracking-wider">{assignMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}</span><button onClick={() => handleAssignMonthNav(1)} className="p-1 hover:bg-gray-100 rounded"><ChevronRight size={16}/></button></div>
-                    <div className="grid grid-cols-7 gap-1 mb-2">{['S','M','T','W','T','F','S'].map((d, i) => <div key={i} className="text-[10px] text-center text-gray-400 font-bold">{d}</div>)}</div>
-                    <div className="grid grid-cols-7 gap-1">{getMiniCalendarDays(assignMonth).map((d, i) => { if (!d) return <div key={i}></div>; const dStr = formatDateForInput(d); const isSel = selectedDates.has(dStr); return <div key={i} onClick={() => toggleDateSelection(dStr)} className={`h-8 flex items-center justify-center text-xs rounded cursor-pointer transition-colors ${isSel ? 'bg-blue-600 text-white font-bold' : 'hover:bg-blue-50 text-gray-700'}`}>{d.getDate()}</div> })}</div>
-                    <button onClick={selectAllMiniCalendar} className="w-full mt-3 bg-gray-100 border border-gray-300 text-gray-700 text-xs font-bold py-2 rounded hover:bg-gray-200">Select All Month</button>
-                    {/* Apply Button Moved Here */}
-                    <button onClick={handleApplySchedule} className="w-full mt-2 bg-blue-600 text-white py-2 rounded font-bold text-sm shadow hover:bg-blue-700 flex items-center justify-center gap-2"><Plus size={16}/> Apply</button>
-                 </div>
+                <div className="w-full sm:w-72 bg-white border border-gray-300 rounded p-2 shadow-sm mx-auto lg:mx-0">
+                  <div className="flex justify-between items-center mb-2"><button onClick={() => handleAssignMonthNav(-1)} className="p-1 hover:bg-gray-100 rounded"><ChevronLeft size={16} /></button><span className="text-xs font-bold uppercase tracking-wider">{assignMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}</span><button onClick={() => handleAssignMonthNav(1)} className="p-1 hover:bg-gray-100 rounded"><ChevronRight size={16} /></button></div>
+                  <div className="grid grid-cols-7 gap-1 mb-2">{['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => <div key={i} className="text-[10px] text-center text-gray-400 font-bold">{d}</div>)}</div>
+                  <div className="grid grid-cols-7 gap-1">{getMiniCalendarDays(assignMonth).map((d, i) => { if (!d) return <div key={i}></div>; const dStr = formatDateForInput(d); const isSel = selectedDates.has(dStr); return <div key={i} onClick={() => toggleDateSelection(dStr)} className={`h-8 flex items-center justify-center text-xs rounded cursor-pointer transition-colors ${isSel ? 'bg-blue-600 text-white font-bold' : 'hover:bg-blue-50 text-gray-700'}`}>{d.getDate()}</div> })}</div>
+                  <button onClick={selectAllMiniCalendar} className="w-full mt-3 bg-gray-100 border border-gray-300 text-gray-700 text-xs font-bold py-2 rounded hover:bg-gray-200">Select All Month</button>
+                  {/* Apply Button Moved Here */}
+                  <button onClick={handleApplySchedule} className="w-full mt-2 bg-blue-600 text-white py-2 rounded font-bold text-sm shadow hover:bg-blue-700 flex items-center justify-center gap-2"><Plus size={16} /> Apply</button>
+                </div>
               </div>
             </div>
           </div>
@@ -754,8 +755,8 @@ const ScheduleGenerator = ({ user, onBack, mode = 'personal', requests, setReque
                       const isCancelled = shift.status === 'cancelled';
                       const isTransport = shift.type === 'Transport';
                       const isMine = shift.empId === user.id;
-                      if (isTransport) return <div key={shift.id} onClick={() => openShiftEditor(shift)} className={`text-[8px] sm:text-[10px] p-0.5 sm:p-1 rounded border font-bold flex items-center justify-between cursor-pointer h-5 sm:h-6 overflow-hidden ${isMine ? 'border-purple-300 bg-purple-100 text-purple-800' : 'border-gray-200 bg-gray-50 text-gray-500 opacity-80'}`}><div className="flex items-center gap-1 overflow-hidden"><Truck size={10}/> <span className="truncate">{isMasterMode || viewScope === 'full' ? staffList.find(s=>s.id === shift.empId)?.name : 'Me'}</span></div><span className="hidden sm:inline">Run</span></div>;
-                      return <div key={shift.id} onClick={() => openShiftEditor(shift)} className={`text-[8px] sm:text-[10px] p-0.5 sm:p-1 rounded border shadow-sm cursor-pointer hover:ring-2 ring-offset-1 transition-all overflow-hidden ${shift.type === 'Half' ? 'w-full sm:w-1/2 sm:inline-block align-top' : 'w-full'} ${isCancelled ? 'border-red-500 bg-red-50 opacity-75' : ''} ${!isMine && !isMasterMode ? 'opacity-70' : ''}`} style={!isCancelled ? { backgroundColor: role.color + '20', borderColor: role.color, borderLeftWidth: '3px' } : {}}>{(isMasterMode || viewScope === 'full') && <div className="font-bold text-gray-800 truncate leading-tight">{staffList.find(s=>s.id === shift.empId)?.name.split(' ')[0]}</div>}<div className={`font-medium truncate ${isCancelled ? 'text-red-600 line-through' : 'text-gray-700'}`}>{role.name}</div></div>;
+                      if (isTransport) return <div key={shift.id} onClick={() => openShiftEditor(shift)} className={`text-[8px] sm:text-[10px] p-0.5 sm:p-1 rounded border font-bold flex items-center justify-between cursor-pointer h-5 sm:h-6 overflow-hidden ${isMine ? 'border-purple-300 bg-purple-100 text-purple-800' : 'border-gray-200 bg-gray-50 text-gray-500 opacity-80'}`}><div className="flex items-center gap-1 overflow-hidden"><Truck size={10} /> <span className="truncate">{isMasterMode || viewScope === 'full' ? staffList.find(s => s.id === shift.empId)?.name : 'Me'}</span></div><span className="hidden sm:inline">Run</span></div>;
+                      return <div key={shift.id} onClick={() => openShiftEditor(shift)} className={`text-[8px] sm:text-[10px] p-0.5 sm:p-1 rounded border shadow-sm cursor-pointer hover:ring-2 ring-offset-1 transition-all overflow-hidden ${shift.type === 'Half' ? 'w-full sm:w-1/2 sm:inline-block align-top' : 'w-full'} ${isCancelled ? 'border-red-500 bg-red-50 opacity-75' : ''} ${!isMine && !isMasterMode ? 'opacity-70' : ''}`} style={!isCancelled ? { backgroundColor: role.color + '20', borderColor: role.color, borderLeftWidth: '3px' } : {}}>{(isMasterMode || viewScope === 'full') && <div className="font-bold text-gray-800 truncate leading-tight">{staffList.find(s => s.id === shift.empId)?.name.split(' ')[0]}</div>}<div className={`font-medium truncate ${isCancelled ? 'text-red-600 line-through' : 'text-gray-700'}`}>{role.name}</div></div>;
                     })}
                   </div>
                 </div>
@@ -775,21 +776,21 @@ const ScheduleGenerator = ({ user, onBack, mode = 'personal', requests, setReque
         )}
 
         <div className="mt-8 border-t pt-6">
-           <h3 className="text-sm font-bold text-gray-700 mb-4">{isMasterMode ? "Pending Staff Requests" : "My Requests"}</h3>
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {requests.filter(r => isMasterMode || r.empId === user.id).map(req => (
-                 <div key={req.id} className="border p-3 rounded bg-white shadow-sm flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-center mb-2"><span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${req.type === 'Day Off' ? 'bg-pink-100 text-pink-700' : 'bg-indigo-100 text-indigo-700'}`}>{req.type}</span><span className={`text-xs font-bold ${req.status === 'approved' ? 'text-green-600' : req.status === 'pending' ? 'text-yellow-600' : 'text-red-600'}`}>{req.status}</span></div>
-                      <div className="text-xs font-bold mb-1">{formatDateDDMMYYYY(req.date)} — {isMasterMode ? staffList.find(s=>s.id === req.empId)?.name : 'Me'}</div>
-                      <p className="text-xs text-gray-600 italic border-l-2 pl-2 border-gray-200">"{req.note}"</p>
-                    </div>
-                    {isMasterMode && req.status === 'pending' && <div className="flex gap-2 mt-3 pt-2 border-t"><button onClick={() => handleRequestAction(req.id, 'approved')} className="flex-1 bg-green-50 text-green-700 text-xs font-bold py-1 rounded hover:bg-green-100">Approve</button><button onClick={() => handleRequestAction(req.id, 'denied')} className="flex-1 bg-red-50 text-red-700 text-xs font-bold py-1 rounded hover:bg-red-100">Deny</button></div>}
-                    {!isMasterMode && req.status === 'pending' && <div className="flex gap-2 mt-3 pt-2 border-t justify-end"><button onClick={() => setRequestEditModal({isOpen: true, request: {...req}})} className="text-gray-500 hover:text-blue-600 p-1"><Edit2 size={14}/></button><button onClick={() => { if(window.confirm("Delete request?")) { setRequests(prev => prev.filter(r => r.id !== req.id)) }}} className="text-gray-500 hover:text-red-600 p-1"><Trash2 size={14}/></button></div>}
-                 </div>
-              ))}
-              {!isMasterMode && <div className="border border-dashed border-gray-300 p-3 rounded bg-gray-50 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-white hover:border-blue-400 transition-colors" onClick={() => setNewRequestModalOpen(true)}><Plus size={24} className="text-gray-400 mb-1"/><span className="text-xs font-bold text-gray-500">New Request</span></div>}
-           </div>
+          <h3 className="text-sm font-bold text-gray-700 mb-4">{isMasterMode ? "Pending Staff Requests" : "My Requests"}</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {requests.filter(r => isMasterMode || r.empId === user.id).map(req => (
+              <div key={req.id} className="border p-3 rounded bg-white shadow-sm flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-center mb-2"><span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${req.type === 'Day Off' ? 'bg-pink-100 text-pink-700' : 'bg-indigo-100 text-indigo-700'}`}>{req.type}</span><span className={`text-xs font-bold ${req.status === 'approved' ? 'text-green-600' : req.status === 'pending' ? 'text-yellow-600' : 'text-red-600'}`}>{req.status}</span></div>
+                  <div className="text-xs font-bold mb-1">{formatDateDDMMYYYY(req.date)} — {isMasterMode ? staffList.find(s => s.id === req.empId)?.name : 'Me'}</div>
+                  <p className="text-xs text-gray-600 italic border-l-2 pl-2 border-gray-200">"{req.note}"</p>
+                </div>
+                {isMasterMode && req.status === 'pending' && <div className="flex gap-2 mt-3 pt-2 border-t"><button onClick={() => handleRequestAction(req.id, 'approved')} className="flex-1 bg-green-50 text-green-700 text-xs font-bold py-1 rounded hover:bg-green-100">Approve</button><button onClick={() => handleRequestAction(req.id, 'denied')} className="flex-1 bg-red-50 text-red-700 text-xs font-bold py-1 rounded hover:bg-red-100">Deny</button></div>}
+                {!isMasterMode && req.status === 'pending' && <div className="flex gap-2 mt-3 pt-2 border-t justify-end"><button onClick={() => setRequestEditModal({ isOpen: true, request: { ...req } })} className="text-gray-500 hover:text-blue-600 p-1"><Edit2 size={14} /></button><button onClick={() => { if (window.confirm("Delete request?")) { setRequests(prev => prev.filter(r => r.id !== req.id)) } }} className="text-gray-500 hover:text-red-600 p-1"><Trash2 size={14} /></button></div>}
+              </div>
+            ))}
+            {!isMasterMode && <div className="border border-dashed border-gray-300 p-3 rounded bg-gray-50 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-white hover:border-blue-400 transition-colors" onClick={() => setNewRequestModalOpen(true)}><Plus size={24} className="text-gray-400 mb-1" /><span className="text-xs font-bold text-gray-500">New Request</span></div>}
+          </div>
         </div>
       </div>
 
@@ -798,45 +799,45 @@ const ScheduleGenerator = ({ user, onBack, mode = 'personal', requests, setReque
       {newRequestModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
-             <div className="flex justify-between items-center mb-4 pb-2 border-b"><h3 className="text-lg font-bold flex items-center gap-2"><Edit2 size={18}/> Submit Request</h3><button onClick={() => setNewRequestModalOpen(false)}><X size={20}/></button></div>
-             <div className="space-y-4">
-                <div className="border rounded p-2">
-                   <div className="flex justify-between items-center mb-2"><button onClick={() => setReqMonth(new Date(reqMonth.setMonth(reqMonth.getMonth()-1)))} className="p-1 hover:bg-gray-100 rounded"><ChevronLeft size={16}/></button><span className="text-xs font-bold">{reqMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}</span><button onClick={() => setReqMonth(new Date(reqMonth.setMonth(reqMonth.getMonth()+1)))} className="p-1 hover:bg-gray-100 rounded"><ChevronRight size={16}/></button></div>
-                   <div className="grid grid-cols-7 gap-1">{['S','M','T','W','T','F','S'].map((d,i) => <div key={i} className="text-[10px] text-center text-gray-400">{d}</div>)}{getMiniCalendarDays(reqMonth).map((d, i) => { if (!d) return <div key={i}></div>; const dStr = formatDateForInput(d); const isSel = requestDate === dStr; return <div key={i} onClick={() => setRequestDate(dStr)} className={`h-7 flex items-center justify-center text-xs rounded cursor-pointer ${isSel ? 'bg-blue-600 text-white font-bold' : 'hover:bg-blue-50'}`}>{d.getDate()}</div> })}</div>
-                </div>
-                <div><label className="text-xs font-bold text-gray-500 block mb-1">Request Type</label><select className="w-full border p-2 rounded text-sm bg-gray-50" value={requestType} onChange={e => setRequestType(e.target.value)}><option value="Vacation">Vacation</option><option value="Day Off">Day Off</option><option value="Sick Leave">Sick Leave</option><option value="Transport">Transport</option><option value="Supply Run">Supply Run</option><option value="Reschedule">Reschedule</option></select></div>
-                <div><label className="text-xs font-bold text-gray-500 block mb-1">Reason (Required)</label><textarea className="w-full h-20 border p-2 rounded text-sm resize-none" placeholder="Please explain why..." value={requestNote} onChange={e => setRequestNote(e.target.value)}></textarea></div>
-                <button onClick={handleSubmitRequest} className="w-full bg-blue-600 text-white py-2 rounded font-bold text-sm shadow hover:bg-blue-700">Submit Request</button>
-             </div>
+            <div className="flex justify-between items-center mb-4 pb-2 border-b"><h3 className="text-lg font-bold flex items-center gap-2"><Edit2 size={18} /> Submit Request</h3><button onClick={() => setNewRequestModalOpen(false)}><X size={20} /></button></div>
+            <div className="space-y-4">
+              <div className="border rounded p-2">
+                <div className="flex justify-between items-center mb-2"><button onClick={() => setReqMonth(new Date(reqMonth.setMonth(reqMonth.getMonth() - 1)))} className="p-1 hover:bg-gray-100 rounded"><ChevronLeft size={16} /></button><span className="text-xs font-bold">{reqMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}</span><button onClick={() => setReqMonth(new Date(reqMonth.setMonth(reqMonth.getMonth() + 1)))} className="p-1 hover:bg-gray-100 rounded"><ChevronRight size={16} /></button></div>
+                <div className="grid grid-cols-7 gap-1">{['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => <div key={i} className="text-[10px] text-center text-gray-400">{d}</div>)}{getMiniCalendarDays(reqMonth).map((d, i) => { if (!d) return <div key={i}></div>; const dStr = formatDateForInput(d); const isSel = requestDate === dStr; return <div key={i} onClick={() => setRequestDate(dStr)} className={`h-7 flex items-center justify-center text-xs rounded cursor-pointer ${isSel ? 'bg-blue-600 text-white font-bold' : 'hover:bg-blue-50'}`}>{d.getDate()}</div> })}</div>
+              </div>
+              <div><label className="text-xs font-bold text-gray-500 block mb-1">Request Type</label><select className="w-full border p-2 rounded text-sm bg-gray-50" value={requestType} onChange={e => setRequestType(e.target.value)}><option value="Vacation">Vacation</option><option value="Day Off">Day Off</option><option value="Sick Leave">Sick Leave</option><option value="Transport">Transport</option><option value="Supply Run">Supply Run</option><option value="Reschedule">Reschedule</option></select></div>
+              <div><label className="text-xs font-bold text-gray-500 block mb-1">Reason (Required)</label><textarea className="w-full h-20 border p-2 rounded text-sm resize-none" placeholder="Please explain why..." value={requestNote} onChange={e => setRequestNote(e.target.value)}></textarea></div>
+              <button onClick={handleSubmitRequest} className="w-full bg-blue-600 text-white py-2 rounded font-bold text-sm shadow hover:bg-blue-700">Submit Request</button>
+            </div>
           </div>
         </div>
       )}
       {requestEditModal.isOpen && requestEditModal.request && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
-             <div className="flex justify-between items-center mb-4 pb-2 border-b"><h3 className="text-lg font-bold flex items-center gap-2">Edit Request</h3><button onClick={() => setRequestEditModal({isOpen:false, request:null})}><X size={20}/></button></div>
-             <div className="space-y-4">
-                <div><label className="text-xs font-bold text-gray-500 block mb-1">Request Type</label><select className="w-full border p-2 rounded text-sm bg-gray-50" value={requestEditModal.request.type} onChange={e => setRequestEditModal({...requestEditModal, request: {...requestEditModal.request, type: e.target.value}})}><option value="Vacation">Vacation</option><option value="Day Off">Day Off</option><option value="Sick Leave">Sick Leave</option><option value="Transport">Transport</option><option value="Supply Run">Supply Run</option><option value="Reschedule">Reschedule</option></select></div>
-                <div><label className="text-xs font-bold text-gray-500 block mb-1">Reason</label><textarea className="w-full h-20 border p-2 rounded text-sm resize-none" value={requestEditModal.request.note} onChange={e => setRequestEditModal({...requestEditModal, request: {...requestEditModal.request, note: e.target.value}})}></textarea></div>
-                <div className="flex justify-between"><button onClick={deleteRequest} className="text-red-600 font-bold text-sm">Delete</button><button onClick={updateRequest} className="bg-blue-600 text-white py-2 px-4 rounded font-bold text-sm">Update</button></div>
-             </div>
+            <div className="flex justify-between items-center mb-4 pb-2 border-b"><h3 className="text-lg font-bold flex items-center gap-2">Edit Request</h3><button onClick={() => setRequestEditModal({ isOpen: false, request: null })}><X size={20} /></button></div>
+            <div className="space-y-4">
+              <div><label className="text-xs font-bold text-gray-500 block mb-1">Request Type</label><select className="w-full border p-2 rounded text-sm bg-gray-50" value={requestEditModal.request.type} onChange={e => setRequestEditModal({ ...requestEditModal, request: { ...requestEditModal.request, type: e.target.value } })}><option value="Vacation">Vacation</option><option value="Day Off">Day Off</option><option value="Sick Leave">Sick Leave</option><option value="Transport">Transport</option><option value="Supply Run">Supply Run</option><option value="Reschedule">Reschedule</option></select></div>
+              <div><label className="text-xs font-bold text-gray-500 block mb-1">Reason</label><textarea className="w-full h-20 border p-2 rounded text-sm resize-none" value={requestEditModal.request.note} onChange={e => setRequestEditModal({ ...requestEditModal, request: { ...requestEditModal.request, note: e.target.value } })}></textarea></div>
+              <div className="flex justify-between"><button onClick={deleteRequest} className="text-red-600 font-bold text-sm">Delete</button><button onClick={updateRequest} className="bg-blue-600 text-white py-2 px-4 rounded font-bold text-sm">Update</button></div>
+            </div>
           </div>
         </div>
       )}
       {shiftEditModal.isOpen && shiftEditModal.shift && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
-             <div className="flex justify-between items-center mb-4 pb-2 border-b"><h3 className="text-lg font-bold flex items-center gap-2"><Edit2 size={18}/> Edit Shift</h3><button onClick={() => setShiftEditModal({isOpen:false, shift:null})}><X size={20}/></button></div>
-             <div className="space-y-3 mb-6">
-                <div><label className="text-xs font-bold text-gray-500">Employee</label><select className="w-full border p-2 rounded text-sm bg-gray-50" value={shiftEditModal.shift.empId} onChange={e => setShiftEditModal({ ...shiftEditModal, shift: { ...shiftEditModal.shift, empId: e.target.value }})}>{staffList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
-                <div><label className="text-xs font-bold text-gray-500">Role</label><select className="w-full border p-2 rounded text-sm" value={shiftEditModal.shift.roleId} onChange={e => setShiftEditModal({ ...shiftEditModal, shift: { ...shiftEditModal.shift, roleId: e.target.value }})}>{roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></div>
-                <div className="flex gap-2">
-                   <div className="flex-1"><label className="text-xs font-bold text-gray-500">Type</label><select className="w-full border p-2 rounded text-sm" value={shiftEditModal.shift.type} onChange={e => setShiftEditModal({ ...shiftEditModal, shift: { ...shiftEditModal.shift, type: e.target.value }})}><option value="Full">Full Shift</option><option value="Half">Half Shift (4h)</option><option value="Double">Double Shift</option><option value="Transport">Transport/Run</option></select></div>
-                   <div className="flex-1"><label className="text-xs font-bold text-gray-500">Pay ($/hr)</label><input type="number" className="w-full border p-2 rounded text-sm" value={shiftEditModal.shift.pay} onChange={e => setShiftEditModal({ ...shiftEditModal, shift: { ...shiftEditModal.shift, pay: e.target.value }})} /></div>
-                </div>
-                <div><label className="text-xs font-bold text-gray-500">Status</label><select className="w-full border p-2 rounded text-sm" value={shiftEditModal.shift.status || 'active'} onChange={e => setShiftEditModal({ ...shiftEditModal, shift: { ...shiftEditModal.shift, status: e.target.value }})}><option value="active">Active</option><option value="cancelled">Cancelled</option></select></div>
-             </div>
-             <div className="flex justify-between pt-2 border-t"><button onClick={deleteShift} className="text-red-500 text-sm font-bold flex items-center gap-1 hover:bg-red-50 px-3 py-2 rounded"><Trash2 size={16}/> Delete</button><button onClick={saveShiftEdit} className="bg-blue-600 text-white text-sm font-bold px-6 py-2 rounded hover:bg-blue-700">Save Changes</button></div>
+            <div className="flex justify-between items-center mb-4 pb-2 border-b"><h3 className="text-lg font-bold flex items-center gap-2"><Edit2 size={18} /> Edit Shift</h3><button onClick={() => setShiftEditModal({ isOpen: false, shift: null })}><X size={20} /></button></div>
+            <div className="space-y-3 mb-6">
+              <div><label className="text-xs font-bold text-gray-500">Employee</label><select className="w-full border p-2 rounded text-sm bg-gray-50" value={shiftEditModal.shift.empId} onChange={e => setShiftEditModal({ ...shiftEditModal, shift: { ...shiftEditModal.shift, empId: e.target.value } })}>{staffList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
+              <div><label className="text-xs font-bold text-gray-500">Role</label><select className="w-full border p-2 rounded text-sm" value={shiftEditModal.shift.roleId} onChange={e => setShiftEditModal({ ...shiftEditModal, shift: { ...shiftEditModal.shift, roleId: e.target.value } })}>{roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></div>
+              <div className="flex gap-2">
+                <div className="flex-1"><label className="text-xs font-bold text-gray-500">Type</label><select className="w-full border p-2 rounded text-sm" value={shiftEditModal.shift.type} onChange={e => setShiftEditModal({ ...shiftEditModal, shift: { ...shiftEditModal.shift, type: e.target.value } })}><option value="Full">Full Shift</option><option value="Half">Half Shift (4h)</option><option value="Double">Double Shift</option><option value="Transport">Transport/Run</option></select></div>
+                <div className="flex-1"><label className="text-xs font-bold text-gray-500">Pay ($/hr)</label><input type="number" className="w-full border p-2 rounded text-sm" value={shiftEditModal.shift.pay} onChange={e => setShiftEditModal({ ...shiftEditModal, shift: { ...shiftEditModal.shift, pay: e.target.value } })} /></div>
+              </div>
+              <div><label className="text-xs font-bold text-gray-500">Status</label><select className="w-full border p-2 rounded text-sm" value={shiftEditModal.shift.status || 'active'} onChange={e => setShiftEditModal({ ...shiftEditModal, shift: { ...shiftEditModal.shift, status: e.target.value } })}><option value="active">Active</option><option value="cancelled">Cancelled</option></select></div>
+            </div>
+            <div className="flex justify-between pt-2 border-t"><button onClick={deleteShift} className="text-red-500 text-sm font-bold flex items-center gap-1 hover:bg-red-50 px-3 py-2 rounded"><Trash2 size={16} /> Delete</button><button onClick={saveShiftEdit} className="bg-blue-600 text-white text-sm font-bold px-6 py-2 rounded hover:bg-blue-700">Save Changes</button></div>
           </div>
         </div>
       )}
@@ -879,7 +880,7 @@ export default function App() {
   let content;
   if (currentView === 'dashboard') content = <Dashboard user={user} onLogout={handleLogout} onNavigate={setCurrentView} />;
   else if (currentView === 'buzon') content = <Buzon onBack={() => setCurrentView('dashboard')} />;
-  else if (currentView === 'incident_report') content = <Placeholder moduleKey={currentView} onBack={() => setCurrentView('dashboard')} />;
+  else if (currentView === 'incident_report') content = <ModuleIncidentReport user={user} onBack={() => setCurrentView('dashboard')} />;
   else if (currentView === 'staff_management') content = <StaffManagement onBack={() => setCurrentView('dashboard')} />;
   else if (currentView === 'schedule_generator') content = <ScheduleGenerator user={user} mode="master" onBack={() => setCurrentView('dashboard')} shifts={shifts} setShifts={setShifts} requests={requests} setRequests={setRequests} />;
   else if (currentView === 'check_schedule') content = <ScheduleGenerator user={user} mode="personal" onBack={() => setCurrentView('dashboard')} shifts={shifts} setShifts={setShifts} requests={requests} setRequests={setRequests} />;

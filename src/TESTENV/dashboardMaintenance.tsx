@@ -1,6 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { CheckCircle, AlertTriangle, Clipboard, Book, Home, ChevronDown, ChevronRight, Droplets, Zap, Armchair, Hammer, Utensils, Save, Printer, ChevronLeft, Plus, Image as ImageIcon, X } from 'lucide-react';
-import { INITIAL_INVENTORY } from './moduleToolCheckout';
+
+// To be safe with imports, I'll redefine INITIAL_INVENTORY here since we are refactoring.
+const MOCK_INVENTORY = [
+  { id: 'T001', name: 'Drill DeWalt 20V', available: 2 },
+  { id: 'T002', name: 'Plumbing Snake', available: 1 },
+  { id: 'M001', name: 'PVC Glue', available: 5 },
+  { id: 'M002', name: 'Silicone Sealant', available: 8 },
+  { id: 'E001', name: 'Wire Nuts (100pk)', available: 3 },
+  { id: 'F001', name: 'AC Filter 12x12', available: 15 }
+];
 
 // --- DATA CONFIGURATION ---
 
@@ -21,7 +30,6 @@ const properties = [
   { id: 'beach', name: 'Beach Bathrooms', type: 'Public Facility', beds: 'N/A', pool: false, floors: 1, commercial: false, tinacos: true },
 ];
 
-// We separate icons from data to prevent cloning issues
 const categoryIcons = {
   Electricity: <Zap size={20} />,
   Plumbing: <Droplets size={20} />,
@@ -102,24 +110,6 @@ const sopDatabase = [
     item: "Roof Waterproofing & Drains",
     procedure: "1. Sweep entire roof surface. 2. Inspect 'Bajadas' (drains) for leaf blockage. 3. Inspect impermeabilizante (white sealant) for bubbling or cracks. 4. If cracked: scrape loose material, apply mesh, apply 2 coats of sealant. 5. Check mounting points of ACs/Antennas for sealant integrity.",
     frequency: "Pre-Rainy Season & Post-Storm"
-  },
-  {
-    category: "Amenities",
-    item: "Washer & Dryer",
-    procedure: "1. Washer: Run empty cycle with 2 cups vinegar (hot water). Clean rubber door gasket for mold (use bleach solution). Clean drain pump filter (usually bottom right). 2. Dryer: Remove lint screen and wash with soap (fabric softener clogs mesh). Vacuum out the vent hose to prevent fire risk.",
-    frequency: "Quarterly"
-  },
-  {
-    category: "Plumbing",
-    item: "Water Heater (Boiler)",
-    procedure: "1. Turn off gas/power. 2. Connect hose to bottom drain valve. 3. Run to exterior. 4. Open pressure relief valve and drain valve to flush out sediment buildup (extends life significantly). 5. Close valves, refill, turn power back on.",
-    frequency: "Every 6 Months"
-  },
-  {
-    category: "Building",
-    item: "Efflorescence (Salty Walls)",
-    procedure: "1. Identify white powdery substance on masonry. 2. Dry scrape with wire brush. 3. Wash with mild acid solution (muriatic acid diluted 1:10) if severe, or vinegar. 4. Allow to dry completely (48hrs). 5. Apply hydrophobic sealer before repainting.",
-    frequency: "As Needed"
   }
 ];
 
@@ -134,17 +124,20 @@ const AddEntryModal = ({ isOpen, onClose, onSave, categories }: any) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-slate-900/80 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
-        <div className="bg-slate-900 p-4 text-white flex justify-between items-center">
-          <h2 className="font-bold">Add Checklist Entry</h2>
-          <button onClick={onClose} className="hover:text-red-400"><X size={20} /></button>
-        </div>
-        <div className="p-6 space-y-4">
+    <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+        <div className="bg-slate-900 p-5 text-white flex justify-between items-center">
           <div>
-            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Category</label>
+            <h2 className="font-bold text-lg leading-tight">Add Checklist Entry</h2>
+            <p className="text-xs text-slate-400 font-medium">Create a new inspection protocol</p>
+          </div>
+          <button onClick={onClose} className="hover:text-red-400 transition-colors p-1"><X size={20} /></button>
+        </div>
+        <div className="p-6 space-y-5">
+          <div>
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Category</label>
             <select
-              className="w-full p-2 border border-slate-200 focus:border-blue-500 outline-none rounded"
+              className="w-full p-2.5 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none rounded-lg text-sm font-medium text-slate-700 transition"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             >
@@ -153,28 +146,30 @@ const AddEntryModal = ({ isOpen, onClose, onSave, categories }: any) => {
             </select>
           </div>
           {category === 'NEW' && (
-            <div>
-              <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">New Category Name</label>
-              <input type="text" className="w-full p-2 border border-slate-200 focus:border-blue-500 outline-none rounded" value={newCategory} onChange={e => setNewCategory(e.target.value)} />
+            <div className="animate-fade-in">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">New Category Name</label>
+              <input type="text" className="w-full p-2.5 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none rounded-lg text-sm transition" value={newCategory} onChange={e => setNewCategory(e.target.value)} placeholder="e.g. Landscaping" />
             </div>
           )}
           <div>
-            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Component Name</label>
-            <input type="text" className="w-full p-2 border border-slate-200 focus:border-blue-500 outline-none rounded" placeholder="e.g. WiFi Router" value={label} onChange={e => setLabel(e.target.value)} />
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Component Name</label>
+            <input type="text" className="w-full p-2.5 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none rounded-lg text-sm transition" placeholder="e.g. WiFi Router" value={label} onChange={e => setLabel(e.target.value)} />
           </div>
           <div>
-            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Inspection Criteria</label>
-            <textarea className="w-full p-2 border border-slate-200 focus:border-blue-500 outline-none rounded" placeholder="e.g. Check speed and connectivity" value={instruction} onChange={e => setInstruction(e.target.value)}></textarea>
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Inspection Criteria</label>
+            <textarea className="w-full p-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none rounded-lg text-sm transition leading-relaxed min-h-[80px]" placeholder="e.g. Check speed and connectivity" value={instruction} onChange={e => setInstruction(e.target.value)}></textarea>
           </div>
-          <button
-            onClick={() => {
-              onSave(category === 'NEW' ? newCategory : category, label, instruction);
-              onClose();
-            }}
-            className="w-full py-2 bg-blue-600 text-white font-bold rounded mt-4 hover:bg-blue-700"
-          >
-            Save Entry
-          </button>
+          <div className="pt-2">
+            <button
+              onClick={() => {
+                onSave(category === 'NEW' ? newCategory : category, label, instruction);
+                onClose();
+              }}
+              className="w-full py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow flex items-center justify-center gap-2 transition"
+            >
+              <Save size={18} /> Save Entry
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -189,42 +184,39 @@ export default function MaintenanceApp({ onBack }: { onBack?: () => void }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [materialsNeeded, setMaterialsNeeded] = useState<Record<string, string>>({});
   const [itemImages, setItemImages] = useState<Record<string, string>>({});
+  const [notes, setNotes] = useState<Record<string, string>>({});
 
   const activeProp = properties.find(p => p.id === selectedPropId) || properties[0];
 
-  // Helper to handle status changes
-  const handleStatusChange = (itemId, status) => {
+  const handleStatusChange = (itemId: string, status: string) => {
     setStatusState(prev => ({
       ...prev,
       [`${selectedPropId}-${itemId}`]: status
     }));
   };
 
-  const getStatus = (itemId) => statusState[`${selectedPropId}-${itemId}`] || '';
+  const getStatus = (itemId: string) => statusState[`${selectedPropId}-${itemId}`] || '';
 
-  // Filter items based on property amenities using useMemo for performance
   const filteredData = useMemo(() => {
-    // Create a deep copy of the array structure, but NOT the icons
     let data = JSON.parse(JSON.stringify(checklistData));
 
-    // Logic: Remove Pool items if no pool
     if (!activeProp.pool) {
-      data.Building = data.Building.filter(i => !i.label.includes('Pool'));
-      data.Amenities = data.Amenities.filter(i => !i.label.includes('Pool'));
+      if (data.Building) data.Building = data.Building.filter((i: any) => !i.label.includes('Pool'));
+      if (data.Amenities) data.Amenities = data.Amenities.filter((i: any) => !i.label.includes('Pool'));
     } else {
-      // Add pool items dynamically if they don't exist in base
+      if (!data.Amenities) data.Amenities = [];
       data.Amenities.push({ id: 'pool1', label: 'Pool Chemicals & Pump', instruction: 'pH, Chlorine, Backwash filter.' });
       data.Amenities.push({ id: 'pool2', label: 'Patio Furniture', instruction: 'Check rattan/mesh for sun damage.' });
     }
 
-    // Logic: Add specific Commercial items
     if (activeProp.commercial) {
+      if (!data.Amenities) data.Amenities = [];
       data.Amenities.push({ id: 'com1', label: 'Industrial Hood', instruction: 'Grease trap check.' });
       data.Amenities.push({ id: 'com2', label: 'Walk-in Cooler', instruction: 'Temp log, seal check.' });
     }
 
-    // Logic: Specific logic for Beach Bathrooms (Tinacos)
     if (activeProp.tinacos) {
+      if (!data.Plumbing) data.Plumbing = [];
       data.Plumbing.push({ id: 'tina1', label: 'Roof Tinacos', instruction: 'Check float valve, lid security, sediment.' });
     }
 
@@ -232,58 +224,57 @@ export default function MaintenanceApp({ onBack }: { onBack?: () => void }) {
   }, [activeProp, checklistData]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col">
       {/* HEADER */}
-      <header className="bg-slate-900 text-white p-6 shadow-lg sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-4">
+      <header className="bg-slate-900 text-white p-4 sm:p-6 shadow-md sticky top-0 z-40 shrink-0">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
             {onBack && (
               <button
                 onClick={onBack}
-                className="p-2 bg-slate-800 hover:bg-slate-700 rounded-full text-slate-300 hover:text-white transition-colors"
-                title="Back to Dashboard"
+                className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-full text-slate-300 hover:text-white transition-colors shrink-0"
               >
-                <ChevronLeft size={24} />
+                <ChevronLeft size={20} />
               </button>
             )}
             <div>
-              <h1 className="text-2xl font-bold tracking-wider">RESORT OPS MASTER</h1>
-              <p className="text-slate-400 text-sm">Seasonal Maintenance & Infrastructure Audit</p>
+              <h1 className="text-lg sm:text-xl font-bold tracking-wide leading-tight flex items-center gap-2"><Hammer size={18} className="text-blue-400" /> MAINTENANCE</h1>
+              <p className="text-slate-400 text-xs sm:text-sm">Operations & Infrastructure Audit</p>
             </div>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-2 w-full sm:w-auto bg-slate-800 p-1 rounded-lg">
             <button
               onClick={() => setActiveTab('checklist')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-bold rounded transition ${activeTab === 'checklist' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
             >
-              <Clipboard size={18} /> Checklist
+              <Clipboard size={16} /> Audit
             </button>
             <button
               onClick={() => setActiveTab('sop')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${activeTab === 'sop' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-bold rounded transition ${activeTab === 'sop' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
             >
-              <Book size={18} /> SOP Manual
+              <Book size={16} /> SOPs
             </button>
           </div>
         </div>
       </header>
 
       {/* MAIN CONTENT */}
-      <main className="max-w-6xl mx-auto p-6">
+      <main className="flex-1 max-w-6xl mx-auto w-full p-4 sm:p-6 pb-24">
 
         {/* CHECKLIST VIEW */}
         {activeTab === 'checklist' && (
-          <div>
+          <div className="animate-fade-in">
             {/* Property Selector Bar */}
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-4 items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-2 bg-blue-100 rounded-full text-blue-700">
-                  <Home size={24} />
+            <div className="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+              <div className="flex items-center gap-4 w-full md:w-auto">
+                <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl text-blue-600 shrink-0">
+                  <Home size={28} />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase">Select Unit</label>
+                <div className="flex-1">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Location / Unit</label>
                   <select
-                    className="bg-transparent font-bold text-lg text-slate-800 outline-none border-b-2 border-transparent focus:border-blue-500 cursor-pointer"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg font-bold text-slate-800 p-2 text-sm md:text-base outline-none focus:ring-2 focus:ring-blue-500 transition"
                     value={selectedPropId}
                     onChange={(e) => setSelectedPropId(e.target.value)}
                   >
@@ -294,115 +285,147 @@ export default function MaintenanceApp({ onBack }: { onBack?: () => void }) {
                 </div>
               </div>
 
-              <div className="text-right text-sm text-slate-500 md:text-left flex-1 md:flex-none">
-                <p className="font-bold">{activeProp.beds}</p>
-                <p>{activeProp.pool ? (activeProp.pool === 'shared' ? 'Shared Pool' : 'Private Pool') : 'No Pool'} • {activeProp.floors} Floor(s)</p>
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col sm:flex-row gap-4 w-full md:w-auto text-sm">
+                <div>
+                  <span className="block text-[10px] text-slate-400 font-bold uppercase tracking-widest">Capacity</span>
+                  <span className="font-semibold text-slate-700">{activeProp.beds}</span>
+                </div>
+                <div className="hidden sm:block w-px bg-slate-200"></div>
+                <div>
+                  <span className="block text-[10px] text-slate-400 font-bold uppercase tracking-widest">Amenities</span>
+                  <span className="font-semibold text-slate-700">{activeProp.pool ? (activeProp.pool === 'shared' ? 'Shared Pool' : 'Private Pool') : 'No Pool'} • {activeProp.floors} Fl.</span>
+                </div>
               </div>
 
               <button
                 onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center justify-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg font-bold hover:bg-slate-700 shadow-md transition ml-auto w-full md:w-auto"
+                className="w-full md:w-auto flex items-center justify-center gap-2 bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-slate-700 shadow-sm transition shrink-0"
               >
                 <Plus size={18} /> Add Entry
               </button>
             </div>
 
-            {/* Checklist Tables */}
-            <div className="space-y-8">
+            {/* Responsive Checklist Cards */}
+            <div className="space-y-6">
               {Object.keys(filteredData).map((catName) => {
                 const items = filteredData[catName];
                 if (items.length === 0) return null;
 
                 return (
-                  <div key={catName} className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                    <div className="bg-slate-100 px-6 py-4 flex items-center gap-3 border-b border-slate-200">
-                      <div className="text-blue-600">
-                        {categoryIcons[catName] || <CheckCircle size={20} />}
+                  <div key={catName} className="bg-slate-100/50 rounded-2xl border border-slate-200/60 overflow-hidden">
+                    <div className="bg-white px-5 py-3 flex items-center justify-between border-b border-slate-200 sticky top-[72px] sm:top-[88px] z-20 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
+                          {categoryIcons[catName] || <CheckCircle size={18} />}
+                        </div>
+                        <h2 className="font-bold text-base sm:text-lg tracking-wide">{catName}</h2>
                       </div>
-                      <h2 className="font-bold text-lg">{catName}</h2>
+                      <span className="text-xs font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded-full">{items.length} items</span>
                     </div>
 
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm text-left min-w-[600px]">
-                        <thead className="bg-slate-50 text-slate-500 uppercase text-xs">
-                          <tr>
-                            <th className="px-6 py-3 w-1/3">Component</th>
-                            <th className="px-6 py-3 w-1/3">Inspection Criteria</th>
-                            <th className="px-6 py-3 w-1/4">Status</th>
-                            <th className="px-6 py-3">Notes</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {items.map((item) => (
-                            <tr key={item.id} className="hover:bg-slate-50 transition">
-                              <td className="px-6 py-4 font-medium text-slate-700">{item.label}</td>
-                              <td className="px-6 py-4 text-slate-500">{item.instruction}</td>
-                              <td className="px-6 py-4">
-                                <div className="flex flex-wrap gap-2">
-                                  {['Good', 'Repair', 'Replace'].map((status) => (
-                                    <button
-                                      key={status}
-                                      onClick={() => handleStatusChange(item.id, status)}
-                                      className={`px-3 py-1 rounded-full text-xs font-bold border transition
-                                        ${getStatus(item.id) === status
-                                          ? (status === 'Good' ? 'bg-green-100 text-green-700 border-green-200' :
-                                            status === 'Repair' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
-                                              'bg-red-100 text-red-700 border-red-200')
-                                          : 'bg-white text-slate-400 border-slate-200 hover:border-blue-300'
-                                        }`}
-                                    >
-                                      {status}
-                                    </button>
+                    <div className="p-3 sm:p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {items.map((item: any) => {
+                        const status = getStatus(item.id);
+                        const isGood = status === 'Good';
+                        const isWarning = status === 'Repair' || status === 'Replace';
+
+                        return (
+                          <div key={item.id} className={`bg-white rounded-xl border p-4 shadow-sm flex flex-col gap-4 transition-all duration-200 relative overflow-hidden group ${isGood ? 'border-green-300 bg-green-50/20' : isWarning ? 'border-orange-300 bg-orange-50/20' : 'border-slate-200 hover:border-blue-300'
+                            }`}>
+                            {/* Status Indicator Band */}
+                            <div className={`absolute top-0 left-0 w-1 h-full transition-colors ${isGood ? 'bg-green-500' : isWarning ? 'bg-orange-500' : 'bg-transparent group-hover:bg-blue-300'
+                              }`}></div>
+
+                            {/* Header */}
+                            <div>
+                              <h3 className="font-bold text-slate-800 text-sm">{item.label}</h3>
+                              <p className="text-xs text-slate-500 mt-1 leading-relaxed bg-slate-50 p-2 rounded border border-slate-100">{item.instruction}</p>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="grid grid-cols-3 gap-2">
+                              {['Good', 'Repair', 'Replace'].map((s) => (
+                                <button
+                                  key={s}
+                                  onClick={() => handleStatusChange(item.id, s)}
+                                  className={`py-1.5 rounded-md text-[11px] font-bold border transition
+                                        ${getStatus(item.id) === s
+                                      ? (s === 'Good' ? 'bg-green-100 text-green-700 border-green-300 shadow-inner' :
+                                        s === 'Repair' ? 'bg-orange-100 text-orange-700 border-orange-300 shadow-inner' :
+                                          'bg-red-100 text-red-700 border-red-300 shadow-inner')
+                                      : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
+                                    }`}
+                                >
+                                  {s}
+                                </button>
+                              ))}
+                            </div>
+
+                            {/* Notes & Expandable Area */}
+                            <div className="mt-auto flex flex-col gap-2 pt-2 border-t border-slate-100">
+                              <input
+                                type="text"
+                                placeholder="Add resolution note..."
+                                className="w-full bg-slate-50 border border-slate-200 rounded p-2 outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white text-xs transition"
+                                value={notes[item.id] || ''}
+                                onChange={(e) => setNotes(prev => ({ ...prev, [item.id]: e.target.value }))}
+                              />
+
+                              <div className="flex gap-2">
+                                <select
+                                  className="flex-1 text-[11px] p-2 bg-slate-50 border border-slate-200 rounded text-slate-600 outline-none focus:border-blue-500 font-medium"
+                                  value={materialsNeeded[item.id] || ''}
+                                  onChange={(e) => setMaterialsNeeded(prev => ({ ...prev, [item.id]: e.target.value }))}
+                                >
+                                  <option value="">+ Material</option>
+                                  {MOCK_INVENTORY.map(tool => (
+                                    <option key={tool.id} value={tool.id}>{tool.name}</option>
                                   ))}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 align-top w-[250px]">
-                                <div className="space-y-3">
-                                  <input type="text" placeholder="Add note..." className="w-full bg-transparent border-b border-slate-200 focus:border-blue-500 outline-none text-slate-600 text-sm pb-1" />
+                                </select>
 
-                                  <label className="flex items-center gap-1 text-[11px] text-blue-600 cursor-pointer hover:text-blue-800 w-max font-bold tracking-wide uppercase">
-                                    <ImageIcon size={14} /> Attach Map/Photo
-                                    <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                                      const file = e.target.files?.[0];
-                                      if (file) {
-                                        const url = URL.createObjectURL(file);
-                                        setItemImages(prev => ({ ...prev, [item.id]: url }));
-                                      }
-                                    }} />
-                                  </label>
+                                <label className="shrink-0 flex items-center justify-center bg-slate-50 border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-300 rounded p-2 cursor-pointer transition" title="Attach Photo">
+                                  <ImageIcon size={14} />
+                                  <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      const url = URL.createObjectURL(file);
+                                      setItemImages(prev => ({ ...prev, [item.id]: url }));
+                                    }
+                                  }} />
+                                </label>
+                              </div>
 
-                                  {itemImages[item.id] && (
-                                    <img src={itemImages[item.id]} className="w-full h-24 object-cover rounded-md border border-slate-200 shadow-sm" alt="Attached note" />
-                                  )}
-
-                                  <select
-                                    className="w-full text-xs p-1.5 bg-slate-50 border border-slate-200 rounded text-slate-600 outline-none focus:border-blue-500"
-                                    value={materialsNeeded[item.id] || ''}
-                                    onChange={(e) => setMaterialsNeeded(prev => ({ ...prev, [item.id]: e.target.value }))}
+                              {itemImages[item.id] && (
+                                <div className="relative mt-2 rounded-lg overflow-hidden border border-slate-200 shadow-sm aspect-video">
+                                  <img src={itemImages[item.id]} className="w-full h-full object-cover" alt="Attached evidence" />
+                                  <button
+                                    onClick={() => {
+                                      const newArr = { ...itemImages };
+                                      delete newArr[item.id];
+                                      setItemImages(newArr);
+                                    }}
+                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-80 hover:opacity-100"
                                   >
-                                    <option value="">+ Material Needed</option>
-                                    {INITIAL_INVENTORY.map(tool => (
-                                      <option key={tool.id} value={tool.id}>{tool.name} (Qty: {tool.available})</option>
-                                    ))}
-                                  </select>
+                                    <X size={12} />
+                                  </button>
                                 </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            <div className="mt-8 flex justify-end gap-4 pb-8">
-              <button className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-300 rounded-lg font-semibold text-slate-600 hover:bg-slate-50">
-                <Printer size={18} /> Print Report
+            <div className="mt-8 flex flex-col sm:flex-row justify-end gap-3 pb-safe">
+              <button className="flex items-center justify-center gap-2 px-6 py-3.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-600 hover:bg-slate-50 transition w-full sm:w-auto">
+                <Printer size={18} /> Print PDF
               </button>
-              <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 shadow-md">
-                <Save size={18} /> Save Audit
+              <button className="flex items-center justify-center gap-2 px-8 py-3.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-md hover:shadow-lg transition w-full sm:w-auto">
+                <Save size={18} /> Submit Audit
               </button>
             </div>
           </div>
@@ -410,27 +433,27 @@ export default function MaintenanceApp({ onBack }: { onBack?: () => void }) {
 
         {/* SOP MANUAL VIEW */}
         {activeTab === 'sop' && (
-          <div className="animate-fade-in pb-8">
-            <div className="bg-white p-8 rounded-lg shadow-sm border border-slate-200">
-              <div className="border-b border-slate-200 pb-6 mb-6">
-                <h2 className="text-2xl font-bold text-slate-800">SOP & Maintenance Protocols</h2>
-                <p className="text-slate-500 mt-2">Strict guidelines for inspection and repair. Deviations require manager approval.</p>
+          <div className="animate-fade-in pb-8 max-w-4xl mx-auto">
+            <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200">
+              <div className="border-b border-slate-200 pb-5 mb-6 text-center sm:text-left">
+                <h2 className="text-2xl font-black text-slate-800">SOP & Maintenance Protocols</h2>
+                <p className="text-slate-500 mt-2 text-sm leading-relaxed">Strict guidelines for inspection and repair. Deviations require manager approval.</p>
               </div>
 
-              <div className="grid gap-6">
+              <div className="grid gap-5">
                 {sopDatabase.map((sop, idx) => (
-                  <div key={idx} className="border border-slate-200 rounded-lg p-6 hover:shadow-md transition">
-                    <div className="flex flex-col md:flex-row justify-between items-start mb-4">
+                  <div key={idx} className="border border-slate-200 bg-slate-50 rounded-xl p-5 hover:border-blue-300 transition-colors group">
+                    <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-3">
                       <div>
-                        <span className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-1 rounded">{sop.category}</span>
-                        <h3 className="text-xl font-bold text-slate-800 mt-2">{sop.item}</h3>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 bg-blue-100 px-2.5 py-1 rounded-full">{sop.category}</span>
+                        <h3 className="text-lg font-bold text-slate-800 mt-3">{sop.item}</h3>
                       </div>
-                      <div className="text-left md:text-right mt-2 md:mt-0">
-                        <span className="text-xs text-slate-400 font-semibold uppercase">Frequency</span>
-                        <p className="text-sm font-medium text-slate-600">{sop.frequency}</p>
+                      <div className="text-left sm:text-right w-full sm:w-auto bg-white p-2 rounded-lg border border-slate-200 sm:border-transparent sm:bg-transparent sm:p-0">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block mb-0.5">Frequency</span>
+                        <p className="text-xs font-bold text-slate-700">{sop.frequency}</p>
                       </div>
                     </div>
-                    <div className="bg-slate-50 p-4 rounded-md text-slate-700 text-sm leading-relaxed border-l-4 border-blue-400">
+                    <div className="bg-white p-4 rounded-lg text-slate-600 text-sm leading-relaxed border border-slate-200 shadow-sm">
                       {sop.procedure}
                     </div>
                   </div>
