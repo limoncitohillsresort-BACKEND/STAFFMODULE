@@ -59,8 +59,17 @@ const EditHoursModal = ({ isOpen, onClose, day, staff, onSave }) => {
 };
 
 // UI Standardized Modal for Deductions
-const DeductionsModal = ({ isOpen, onClose, staff, deductions }) => {
+const DeductionsModal = ({ isOpen, onClose, staff, deductions, onAdd, onRemove }) => {
+   const [newReason, setNewReason] = useState('');
+   const [newAmount, setNewAmount] = useState('');
+
    if (!isOpen) return null;
+
+   const handleAdd = () => {
+      onAdd(newReason, newAmount);
+      setNewReason('');
+      setNewAmount('');
+   };
 
    return (
       <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4">
@@ -86,7 +95,7 @@ const DeductionsModal = ({ isOpen, onClose, staff, deductions }) => {
                               <span>-${Math.abs(d.amount).toFixed(2)}</span>
                            </div>
                            <p className="text-sm text-red-700 mt-1">{d.reason}</p>
-                           <button className="text-xs text-red-500 hover:text-red-700 underline mt-2 font-bold transition">Remove / Forgive</button>
+                           <button onClick={() => onRemove(d.id)} className="text-xs text-red-500 hover:text-red-700 underline mt-2 font-bold transition">Remove / Forgive</button>
                         </div>
                      ))}
                   </div>
@@ -94,9 +103,9 @@ const DeductionsModal = ({ isOpen, onClose, staff, deductions }) => {
 
                <div className="mt-4 pt-4 border-t border-slate-200">
                   <h4 className="text-xs font-bold text-slate-500 uppercase mb-3 text-center">Add New Deduction</h4>
-                  <input type="text" placeholder="Reason (e.g. Uniform Replacement)" className="w-full p-2 border rounded mb-2 text-sm outline-none focus:border-red-500 transition" />
-                  <input type="number" placeholder="Amount ($)" className="w-full p-2 border rounded mb-3 text-sm outline-none focus:border-red-500 transition" />
-                  <button className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg flex items-center justify-center gap-2 transition hover:shadow-lg">
+                  <input type="text" placeholder="Reason (e.g. Uniform Replacement)" value={newReason} onChange={(e) => setNewReason(e.target.value)} className="w-full p-2 border rounded mb-2 text-sm outline-none focus:border-red-500 transition" />
+                  <input type="number" placeholder="Amount ($)" value={newAmount} onChange={(e) => setNewAmount(e.target.value)} className="w-full p-2 border rounded mb-3 text-sm outline-none focus:border-red-500 transition" />
+                  <button onClick={handleAdd} className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg flex items-center justify-center gap-2 transition hover:shadow-lg">
                      <Plus size={16} /> Add Deduction
                   </button>
                </div>
@@ -112,13 +121,17 @@ export default function ModulePayroll({ onBack }) {
    const [pushed, setPushed] = useState(false);
    const [weekOffset, setWeekOffset] = useState(0);
 
+   // Dynamic DB State
+   const [weeklyLogs, setWeeklyLogs] = useState(WEEKLY_LOGS);
+   const [deductionsDb, setDeductionsDb] = useState(DEDUCTIONS_DB);
+
    // Modal states
    const [editingDay, setEditingDay] = useState(null);
    const [showDeductions, setShowDeductions] = useState(false);
 
    const staff = STAFF_LIST.find(s => s.id === selectedStaff);
-   const log = WEEKLY_LOGS[selectedStaff] || { daysWorked: 0, totalHours: 0, extraBounties: 0 };
-   const deductions = DEDUCTIONS_DB[selectedStaff] || [];
+   const log = weeklyLogs[selectedStaff] || { daysWorked: 0, totalHours: 0, extraBounties: 0, customHours: {} };
+   const deductions = deductionsDb[selectedStaff] || [];
 
    const basePay = (staff.rate / staff.dailyHours) * log.totalHours;
    const totalDeductions = deductions.reduce((acc, curr) => acc + curr.amount, 0);
@@ -130,6 +143,54 @@ export default function ModulePayroll({ onBack }) {
       if (weekOffset === 0) return "Current Week (W24)";
       if (weekOffset === -1) return "Last Week (W23)";
       return `Week ${24 + weekOffset}`;
+   };
+
+   // Handlers
+   const handleSaveHours = (hours, reason) => {
+      const parsedHours = parseFloat(hours) || 0;
+      setWeeklyLogs(prev => {
+         const currentLog = prev[selectedStaff] || { daysWorked: 0, totalHours: 0, extraBounties: 0, customHours: {} };
+         const previousHoursForDay = currentLog.customHours?.[editingDay] !== undefined
+            ? currentLog.customHours[editingDay]
+            : (daysOfWeek.indexOf(editingDay) < currentLog.daysWorked ? staff.dailyHours : 0);
+
+         const newTotalHours = currentLog.totalHours - previousHoursForDay + parsedHours;
+
+         return {
+            ...prev,
+            [selectedStaff]: {
+               ...currentLog,
+               totalHours: newTotalHours,
+               customHours: {
+                  ...(currentLog.customHours || {}),
+                  [editingDay]: parsedHours
+               }
+            }
+         };
+      });
+      setSigned(false);
+   };
+
+   const handleAddDeduction = (reason, amount) => {
+      const parsedAmount = -Math.abs(parseFloat(amount) || 0); // Ensure negative
+      if (parsedAmount === 0 || !reason) return;
+
+      setDeductionsDb(prev => ({
+         ...prev,
+         [selectedStaff]: [
+            ...(prev[selectedStaff] || []),
+            { id: 'd_' + Date.now(), reason, amount: parsedAmount }
+         ]
+      }));
+      setSigned(false);
+   };
+
+   const handleRemoveDeduction = (deductionId) => {
+      setDeductionsDb(prev => ({
+         ...prev,
+         [selectedStaff]: (prev[selectedStaff] || []).filter(d => d.id !== deductionId)
+      }));
+      setSigned(false);
    };
 
    return (
@@ -185,7 +246,7 @@ export default function ModulePayroll({ onBack }) {
                               </div>
                               <div className="text-right">
                                  <span className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded font-bold block mb-1">
-                                    {WEEKLY_LOGS[s.id]?.totalHours || 0}h
+                                    {weeklyLogs[s.id]?.totalHours || 0}h
                                  </span>
                               </div>
                            </div>
@@ -216,12 +277,16 @@ export default function ModulePayroll({ onBack }) {
                      </h3>
                      <div className="flex flex-wrap md:flex-nowrap bg-slate-100 rounded-lg border border-slate-200 overflow-hidden text-center divide-x divide-slate-200">
                         {daysOfWeek.map((day, i) => {
-                           const worked = i < log.daysWorked;
+                           const worked = i < log.daysWorked || log.customHours?.[day] > 0;
+                           const displayedHours = log.customHours?.[day] !== undefined ? log.customHours[day] : (i < log.daysWorked ? staff.dailyHours : 0);
                            return (
-                              <div key={day} onClick={() => setEditingDay(day)} className="flex-1 p-3 bg-white hover:bg-blue-50 cursor-pointer transition active:bg-blue-100">
+                              <div key={day} onClick={() => setEditingDay(day)} className="flex-1 p-3 bg-white hover:bg-blue-50 cursor-pointer transition active:bg-blue-100 relative">
+                                 {log.customHours?.[day] !== undefined && (
+                                    <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-orange-400" title="Manually Edited"></div>
+                                 )}
                                  <div className="text-xs font-bold text-slate-400 uppercase">{day}</div>
-                                 <div className={`mt-2 font-bold ${worked ? 'text-green-600' : 'text-slate-300'}`}>
-                                    {worked ? (staff.dailyHours + 'h') : 'OFF'}
+                                 <div className={`mt-2 font-bold ${worked && displayedHours > 0 ? 'text-green-600' : 'text-slate-300'}`}>
+                                    {worked && displayedHours > 0 ? (displayedHours + 'h') : 'OFF'}
                                  </div>
                               </div>
                            )
@@ -234,7 +299,7 @@ export default function ModulePayroll({ onBack }) {
                         <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 pb-2 flex items-center gap-2"><DollarSign size={16} /> Gross Earnings</h3>
                         <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 space-y-3">
                            <div className="flex justify-between text-sm">
-                              <span className="text-slate-600 font-medium">Base Pay (Daily: ${staff?.rate.toFixed(2)})</span>
+                              <span className="text-slate-600 font-medium">Base Pay (calculated from hours)</span>
                               <span className="font-bold text-slate-800">${basePay.toFixed(2)}</span>
                            </div>
                            <div className="flex justify-between text-sm">
@@ -303,7 +368,7 @@ export default function ModulePayroll({ onBack }) {
             onClose={() => setEditingDay(null)}
             day={editingDay}
             staff={staff}
-            onSave={(h, r) => console.log('Saved', h, r)}
+            onSave={handleSaveHours}
          />
 
          <DeductionsModal
@@ -311,6 +376,8 @@ export default function ModulePayroll({ onBack }) {
             onClose={() => setShowDeductions(false)}
             staff={staff}
             deductions={deductions}
+            onAdd={handleAddDeduction}
+            onRemove={handleRemoveDeduction}
          />
       </div>
    );

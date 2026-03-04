@@ -181,6 +181,157 @@ const AddAssetModal = ({ isOpen, onClose, onSave }) => {
       </div>
    );
 };
+// UI Standardized Item Details & Location Modal
+const ItemDetailsModal = ({ isOpen, onClose, item, onSaveEdit, uploadedMap, onMapUpload }) => {
+   const [isEditing, setIsEditing] = useState(false);
+   const [editData, setEditData] = useState(null);
+
+   // Sync edit data when item changes
+   React.useEffect(() => {
+      if (item) setEditData({ ...item });
+      setIsEditing(false);
+   }, [item]);
+
+   if (!isOpen || !item || !editData) return null;
+
+   const handleSave = () => {
+      onSaveEdit(editData);
+      setIsEditing(false);
+   };
+
+   return (
+      <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4">
+         <div className="bg-white rounded-xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="bg-slate-800 text-white p-4 flex justify-between items-center">
+               <h3 className="font-bold flex items-center gap-2">
+                  <Package size={18} /> Asset Details & Location
+               </h3>
+               <button onClick={onClose} className="hover:text-red-400 transition"><X size={18} /></button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto flex flex-col md:flex-row">
+               {/* Details Panel */}
+               <div className="md:w-1/2 p-6 border-r border-slate-200 space-y-4">
+                  <div className="flex justify-between items-start mb-6">
+                     <div>
+                        {isEditing ? (
+                           <input type="text" className="w-full font-bold text-xl text-slate-800 border-b-2 border-blue-500 outline-none pb-1" value={editData.name} onChange={e => setEditData({ ...editData, name: e.target.value })} />
+                        ) : (
+                           <h2 className="text-2xl font-black text-slate-800 leading-tight">{item.name}</h2>
+                        )}
+                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-1">{item.sku} • {item.category}</p>
+                     </div>
+                     {!isEditing && (
+                        <button onClick={() => setIsEditing(true)} className="bg-slate-100 hover:bg-slate-200 text-slate-600 p-2 rounded-lg transition">
+                           <Edit2 size={16} />
+                        </button>
+                     )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Quantity</label>
+                        {isEditing ? (
+                           <input type="number" className="w-full text-lg font-black bg-transparent outline-none border-b border-blue-300" value={editData.qty} onChange={e => setEditData({ ...editData, qty: parseInt(e.target.value) })} />
+                        ) : (
+                           <div className={`text-lg font-black ${item.qty < item.minStock ? 'text-red-600' : 'text-slate-700'}`}>{item.qty} <span className="text-xs text-slate-400 font-normal">/ {item.minStock} min</span></div>
+                        )}
+                     </div>
+                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Location</label>
+                        {isEditing ? (
+                           <input type="text" className="w-full font-bold text-slate-700 bg-transparent outline-none border-b border-blue-300" value={editData.location} onChange={e => setEditData({ ...editData, location: e.target.value })} />
+                        ) : (
+                           <div className="font-bold text-slate-700 truncate" title={item.location}>{item.location}</div>
+                        )}
+                     </div>
+                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Condition</label>
+                        {isEditing ? (
+                           <select className="w-full font-bold text-slate-700 bg-transparent outline-none border-b border-blue-300" value={editData.condition} onChange={e => setEditData({ ...editData, condition: e.target.value })}>
+                              <option value="New">New</option><option value="Good">Good</option><option value="Fair">Fair</option><option value="Poor">Poor</option><option value="Broken">Broken</option><option value="Missing Parts">Missing Parts</option>
+                           </select>
+                        ) : (
+                           <div className={`text-sm font-bold ${item.condition === 'Good' || item.condition === 'New' ? 'text-green-600' : 'text-red-500'}`}>{item.condition}</div>
+                        )}
+                     </div>
+                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Unit Price</label>
+                        {isEditing ? (
+                           <input type="number" step="0.01" className="w-full font-bold text-slate-700 bg-transparent outline-none border-b border-blue-300" value={editData.price} onChange={e => setEditData({ ...editData, price: parseFloat(e.target.value) })} />
+                        ) : (
+                           <div className="font-bold text-slate-700">${item.price?.toFixed(2) || '0.00'}</div>
+                        )}
+                     </div>
+                  </div>
+
+                  <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                     <label className="text-[10px] font-bold text-slate-400 uppercase">Vendor</label>
+                     {isEditing ? (
+                        <input type="text" className="w-full text-sm font-medium text-slate-700 bg-transparent outline-none border-b border-blue-300" value={editData.vendor} onChange={e => setEditData({ ...editData, vendor: e.target.value })} />
+                     ) : (
+                        <div className="text-sm font-medium text-slate-700">{item.vendor || 'N/A'}</div>
+                     )}
+                  </div>
+
+                  <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex-1">
+                     <label className="text-[10px] font-bold text-slate-400 uppercase">Notes</label>
+                     {isEditing ? (
+                        <textarea className="w-full text-sm text-slate-600 bg-transparent outline-none border border-blue-300 rounded p-1 mt-1" rows={3} value={editData.notes} onChange={e => setEditData({ ...editData, notes: e.target.value })}></textarea>
+                     ) : (
+                        <p className="text-sm text-slate-600 mt-1">{item.notes || 'No operational notes provided.'}</p>
+                     )}
+                  </div>
+
+                  {isEditing && (
+                     <div className="pt-4 flex gap-3">
+                        <button onClick={() => setIsEditing(false)} className="flex-1 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg transition">Cancel</button>
+                        <button onClick={handleSave} className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg flex items-center justify-center gap-2 transition shadow-md">
+                           <Save size={16} /> Save Changes
+                        </button>
+                     </div>
+                  )}
+               </div>
+
+               {/* Map Panel */}
+               <div className="md:w-1/2 bg-slate-900 flex flex-col relative">
+                  <div className="absolute top-4 left-4 right-4 z-10 flex justify-between items-center bg-slate-800/80 backdrop-blur-sm p-3 rounded-lg border border-slate-700 shadow-lg">
+                     <div className="flex items-center gap-2 text-white">
+                        <MapPin size={16} className="text-blue-400" />
+                        <span className="text-sm font-bold">Property Floor Plan</span>
+                     </div>
+                     <label className="cursor-pointer text-xs font-bold bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded text-white transition flex items-center gap-1.5 shadow">
+                        <UploadCloud size={14} /> Update Map
+                        <input type="file" accept="image/png, image/jpeg" className="hidden" onChange={onMapUpload} />
+                     </label>
+                  </div>
+                  <div className="flex-1 relative flex items-center justify-center p-4 bg-slate-900 overflow-hidden group min-h-[300px]">
+                     {uploadedMap ? (
+                        <div className="relative w-full h-full flex items-center justify-center">
+                           <img src={uploadedMap} alt="Floor Plan" className="max-w-full max-h-full object-contain opacity-80 group-hover:opacity-100 transition duration-500 cursor-crosshair" />
+                           {/* Floating mock pin */}
+                           <div className="absolute top-[40%] left-[50%] animate-bounce cursor-pointer">
+                              <div className="w-6 h-6 bg-red-500 rounded-t-full rounded-b-full rounded-br-none rotate-[-45deg] flex items-center justify-center shadow-lg border-2 border-white relative z-10"><MapPin size={10} className="text-white rotate-[45deg]" /></div>
+                              <div className="w-4 h-1 bg-black/50 rounded-[50%] blur-[2px] absolute bottom-[-4px] left-[5px] z-0"></div>
+                           </div>
+                           <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none">
+                              <span className="bg-slate-800/90 text-slate-300 text-[10px] px-3 py-1 rounded-full uppercase tracking-widest font-bold shadow-lg border border-slate-700">Zone: {item.location}</span>
+                           </div>
+                        </div>
+                     ) : (
+                        <div className="border-2 border-slate-700 rounded-lg border-dashed flex flex-col items-center justify-center text-slate-500 p-8 text-center w-full h-full m-4">
+                           <ImageIcon size={48} className="mb-4 opacity-50 text-slate-600" />
+                           <p className="text-sm font-bold text-slate-400">Upload a property floor plan</p>
+                           <p className="text-xs mt-2 max-w-[200px]">To precisely pin this asset to coordinates within {item.location}.</p>
+                        </div>
+                     )}
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   );
+};
 
 export default function ModuleInventory({ onBack }) {
    const [inventory, setInventory] = useState(INITIAL_INVENTORY);
@@ -188,12 +339,8 @@ export default function ModuleInventory({ onBack }) {
    const [searchQuery, setSearchQuery] = useState('');
    const [isScannerOpen, setIsScannerOpen] = useState(false);
    const [isAssetModalOpen, setIsAssetModalOpen] = useState(false);
+   const [selectedItem, setSelectedItem] = useState(null);
    const [uploadedMap, setUploadedMap] = useState(null);
-
-   // Inline Edit State
-   const [editCell, setEditCell] = useState({ id: null, field: null });
-   const [editValue, setEditValue] = useState('');
-   const inputRef = useRef(null);
 
    const toggleCategory = (catId) => {
       if (expandedCategories.includes(catId)) setExpandedCategories(expandedCategories.filter(id => id !== catId));
@@ -207,18 +354,9 @@ export default function ModuleInventory({ onBack }) {
 
    const deficits = filteredInventory.filter(i => i.qty < i.minStock);
 
-   const startEdit = (id, field, value) => {
-      setEditCell({ id, field });
-      setEditValue(value);
-      setTimeout(() => inputRef.current?.focus(), 50);
-   };
-
-   const commitEdit = () => {
-      if (!editCell.id) return;
-      setInventory(prev => prev.map(item =>
-         item.id === editCell.id ? { ...item, [editCell.field]: editValue } : item
-      ));
-      setEditCell({ id: null, field: null });
+   const handleSaveEdit = (editedItem) => {
+      setInventory(prev => prev.map(i => i.id === editedItem.id ? editedItem : i));
+      setSelectedItem(editedItem);
    };
 
    const handleMapUpload = (e) => {
@@ -282,9 +420,6 @@ export default function ModuleInventory({ onBack }) {
 
          <main className="flex-1 p-4 md:p-6 max-w-7xl mx-auto w-full flex flex-col lg:flex-row gap-6">
             <div className="flex-1 space-y-4">
-               <div className="bg-blue-50 border border-blue-200 text-blue-800 p-3 rounded-lg text-sm flex items-center justify-between">
-                  <span className="flex items-center gap-2 font-medium"><Edit2 size={16} /> Tip: Click on any detail (location, qty, condition, notes) in the table to edit inline.</span>
-               </div>
                {CATEGORIES.map(cat => {
                   const catItems = filteredInventory.filter(i => i.category === cat.id);
                   const isExpanded = expandedCategories.includes(cat.id);
@@ -320,64 +455,44 @@ export default function ModuleInventory({ onBack }) {
                                        <th className="px-4 py-3 w-24 text-center">Stock / Min</th>
                                        <th className="px-4 py-3 w-28 text-center">Condition</th>
                                        <th className="px-4 py-3">Vendor / Notes</th>
+                                       <th className="px-4 py-3 w-10"></th>
                                     </tr>
                                  </thead>
                                  <tbody className="divide-y divide-slate-100">
                                     {catItems.length === 0 ? (
-                                       <tr><td colSpan="6" className="p-4 text-center text-slate-400 italic">No assets found in this category.</td></tr>
+                                       <tr><td colSpan="7" className="p-4 text-center text-slate-400 italic">No assets found in this category.</td></tr>
                                     ) : (
                                        catItems.map(item => (
-                                          <tr key={item.id} className="hover:bg-slate-50 transition group">
-                                             <td className="px-4 py-3 font-mono text-[10px] text-slate-400 cursor-pointer" onClick={() => startEdit(item.id, 'sku', item.sku)}>
-                                                {editCell.id === item.id && editCell.field === 'sku' ? (
-                                                   <input ref={inputRef} onBlur={commitEdit} onChange={e => setEditValue(e.target.value)} value={editValue} className="w-full bg-white border border-blue-400 rounded px-1 text-[10px] text-slate-800 outline-none" onKeyDown={e => e.key === 'Enter' && commitEdit()} />
-                                                ) : <><Hash size={10} className="inline" /> {item.sku}</>}
+                                          <tr key={item.id} className="hover:bg-blue-50/50 transition cursor-pointer group" onClick={() => setSelectedItem(item)}>
+                                             <td className="px-4 py-3 font-mono text-[10px] text-slate-400">
+                                                <Hash size={10} className="inline mr-1" />{item.sku}
                                              </td>
-                                             <td className="px-4 py-3 font-bold text-slate-700 cursor-pointer" onClick={() => startEdit(item.id, 'name', item.name)}>
-                                                {editCell.id === item.id && editCell.field === 'name' ? (
-                                                   <input ref={inputRef} onBlur={commitEdit} onChange={e => setEditValue(e.target.value)} value={editValue} className="w-full bg-white border border-blue-400 rounded px-1 outline-none font-bold" onKeyDown={e => e.key === 'Enter' && commitEdit()} />
-                                                ) : item.name}
+                                             <td className="px-4 py-3 font-bold text-slate-700 group-hover:text-blue-600 transition">
+                                                {item.name}
                                              </td>
-                                             <td className="px-4 py-3 cursor-pointer" onClick={() => startEdit(item.id, 'location', item.location)}>
-                                                {editCell.id === item.id && editCell.field === 'location' ? (
-                                                   <input ref={inputRef} onBlur={commitEdit} onChange={e => setEditValue(e.target.value)} value={editValue} className="w-full bg-white border border-blue-400 rounded px-1 outline-none text-[11px] font-bold" onKeyDown={e => e.key === 'Enter' && commitEdit()} />
-                                                ) : (
-                                                   <button className="flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded transition max-w-full">
-                                                      <MapPin size={12} className="shrink-0" /> <span className="truncate">{item.location}</span>
-                                                   </button>
-                                                )}
+                                             <td className="px-4 py-3">
+                                                <div className="flex items-center gap-1 text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded transition max-w-full">
+                                                   <MapPin size={12} className="shrink-0 text-slate-400" /> <span className="truncate">{item.location}</span>
+                                                </div>
                                              </td>
-                                             <td className="px-4 py-3 text-center cursor-pointer" onClick={() => startEdit(item.id, 'qty', item.qty)}>
+                                             <td className="px-4 py-3 text-center">
                                                 <div className="flex items-center justify-center gap-2">
-                                                   {editCell.id === item.id && editCell.field === 'qty' ? (
-                                                      <input ref={inputRef} type="number" onBlur={commitEdit} onChange={e => setEditValue(e.target.value)} value={editValue} className="w-12 text-center bg-white border border-blue-400 rounded text-lg font-black outline-none" onKeyDown={e => e.key === 'Enter' && commitEdit()} />
-                                                   ) : (
-                                                      <span className={`font-black text-lg ${item.qty < item.minStock ? 'text-red-500' : 'text-slate-800'}`}>{item.qty}</span>
-                                                   )}
+                                                   <span className={`font-black text-lg ${item.qty < item.minStock ? 'text-red-500' : 'text-slate-800'}`}>{item.qty}</span>
                                                    <span className="text-slate-400 text-xs">/ {item.minStock}</span>
                                                 </div>
                                                 {item.qty < item.minStock && <span className="text-[9px] font-bold text-red-500 uppercase tracking-widest block mt-0.5">Deficit</span>}
                                              </td>
-                                             <td className="px-4 py-3 cursor-pointer" onClick={() => startEdit(item.id, 'condition', item.condition)}>
-                                                {editCell.id === item.id && editCell.field === 'condition' ? (
-                                                   <select ref={inputRef} onBlur={commitEdit} onChange={e => setEditValue(e.target.value)} value={editValue} className="w-full bg-white border border-blue-400 rounded px-1 text-[10px] font-bold outline-none uppercase tracking-wider">
-                                                      <option value="New">New</option>
-                                                      <option value="Good">Good</option>
-                                                      <option value="Fair">Fair</option>
-                                                      <option value="Broken">Broken</option>
-                                                      <option value="Missing Parts">Missing Parts</option>
-                                                   </select>
-                                                ) : (
-                                                   <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full text-center block ${item.condition === 'Good' || item.condition === 'New' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{item.condition}</span>
-                                                )}
+                                             <td className="px-4 py-3">
+                                                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full text-center block ${item.condition === 'Good' || item.condition === 'New' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{item.condition}</span>
                                              </td>
-                                             <td className="px-4 py-3 text-[11px] cursor-pointer" onClick={() => startEdit(item.id, 'notes', item.notes)}>
+                                             <td className="px-4 py-3 text-[11px]">
                                                 <span className="font-bold text-slate-600 block mb-0.5">{item.vendor}</span>
-                                                {editCell.id === item.id && editCell.field === 'notes' ? (
-                                                   <input ref={inputRef} onBlur={commitEdit} onChange={e => setEditValue(e.target.value)} value={editValue} className="w-full bg-white border border-blue-400 rounded px-1 outline-none text-slate-600" onKeyDown={e => e.key === 'Enter' && commitEdit()} />
-                                                ) : (
-                                                   <span className="text-slate-400 line-clamp-2" title={item.notes}>{item.notes}</span>
-                                                )}
+                                                <span className="text-slate-400 line-clamp-2" title={item.notes}>{item.notes}</span>
+                                             </td>
+                                             <td className="px-4 py-3 text-right">
+                                                <button className="text-slate-400 hover:text-blue-600 transition opacity-0 group-hover:opacity-100 p-1">
+                                                   <Edit2 size={16} />
+                                                </button>
                                              </td>
                                           </tr>
                                        ))
@@ -410,40 +525,17 @@ export default function ModuleInventory({ onBack }) {
                      </button>
                   )}
                </div>
-
-               <div className="bg-slate-800 rounded-xl overflow-hidden shadow-lg border border-slate-700">
-                  <div className="p-3 border-b border-slate-700 flex justify-between items-center">
-                     <h3 className="font-bold text-sm text-white flex items-center gap-2"><MapPin size={16} className="text-blue-400" /> Floor Plan Mapping</h3>
-                     <label className="cursor-pointer text-xs font-bold bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded text-white transition flex items-center gap-1">
-                        <ImageIcon size={14} /> Upload PNG
-                        <input type="file" accept="image/png, image/jpeg" className="hidden" onChange={handleMapUpload} />
-                     </label>
-                  </div>
-                  <div className="h-64 bg-slate-900 relative flex items-center justify-center p-4 overflow-hidden group">
-                     {uploadedMap ? (
-                        <img src={uploadedMap} alt="Floor Plan" className="w-full h-full object-contain opacity-70 group-hover:opacity-100 transition duration-500 cursor-crosshair" />
-                     ) : (
-                        <>
-                           <div className="absolute inset-4 border-2 border-slate-700 rounded-lg border-dashed flex flex-col items-center justify-center text-slate-500 p-6 text-center">
-                              <ImageIcon size={32} className="mb-2 opacity-50" />
-                              <p className="text-xs font-bold">Upload a property floor plan</p>
-                              <p className="text-[10px] mt-1">To precisely pin assets to coordinates.</p>
-                           </div>
-                        </>
-                     )}
-
-                     {/* Floating mock pin */}
-                     {uploadedMap && (
-                        <div className="absolute top-[40%] left-[50%] animate-bounce cursor-pointer">
-                           <div className="w-6 h-6 bg-red-500 rounded-t-full rounded-b-full rounded-br-none rotate-[-45deg] flex items-center justify-center shadow-lg border-2 border-white relative z-10"></div>
-                           <div className="w-4 h-1 bg-black/30 rounded-[50%] blur-[2px] absolute bottom-[-4px] left-[4px] z-0"></div>
-                        </div>
-                     )}
-                  </div>
-               </div>
             </div>
          </main>
 
+         <ItemDetailsModal
+            isOpen={!!selectedItem}
+            onClose={() => setSelectedItem(null)}
+            item={selectedItem}
+            onSaveEdit={handleSaveEdit}
+            uploadedMap={uploadedMap}
+            onMapUpload={handleMapUpload}
+         />
          <ReceiptScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} />
          <AddAssetModal isOpen={isAssetModalOpen} onClose={() => setIsAssetModalOpen(false)} onSave={(item) => setInventory([...inventory, item])} />
       </div>

@@ -33,6 +33,8 @@ import {
   Search
 } from 'lucide-react';
 import ModuleIncidentReport from '../modules/moduleIncidentReport';
+import ModuleOnboard from '../modules/moduleOnboard';
+import ModuleEmployeeInfo from '../modules/moduleEmployeeInfo';
 
 /* --- CONFIGURATION --- */
 const API_URL = "YOUR_N8N_WEBHOOK_URL_HERE";
@@ -66,7 +68,9 @@ const MODULE_CONFIG = {
   event_timeline: { title: "Event Timeline", id: "event_timeline", icon: <Clock size={24} />, color: "#f1c40f" },
   guest_logs: { title: "Guest Logs", id: "guest_logs", icon: <Users size={24} />, color: "#34495e" },
   property_management: { title: "Property Mgmt", id: "property_management", icon: <Home size={24} />, color: "#795548" },
-  inventory_list: { title: "Inventory", id: "inventory_list", icon: <ClipboardList size={24} />, color: "#95a5a6" }
+  inventory_list: { title: "Inventory", id: "inventory_list", icon: <ClipboardList size={24} />, color: "#95a5a6" },
+  onboard_new: { title: "Onboarding", id: "onboard_new", icon: <Check size={24} />, color: "#8b5cf6" },
+  employee_profile: { title: "Employee Profile", id: "employee_profile", icon: <UserCog size={24} />, color: "#0ea5e9" }
 };
 
 /* --- UTILS --- */
@@ -884,6 +888,8 @@ export default function App() {
   else if (currentView === 'staff_management') content = <StaffManagement onBack={() => setCurrentView('dashboard')} />;
   else if (currentView === 'schedule_generator') content = <ScheduleGenerator user={user} mode="master" onBack={() => setCurrentView('dashboard')} shifts={shifts} setShifts={setShifts} requests={requests} setRequests={setRequests} />;
   else if (currentView === 'check_schedule') content = <ScheduleGenerator user={user} mode="personal" onBack={() => setCurrentView('dashboard')} shifts={shifts} setShifts={setShifts} requests={requests} setRequests={setRequests} />;
+  else if (currentView === 'onboard_new') content = <ModuleOnboard user={user} onBack={() => setCurrentView('dashboard')} />;
+  else if (currentView === 'employee_profile') content = <ModuleEmployeeInfo user={user} onBack={() => setCurrentView('dashboard')} />;
   else content = <Placeholder moduleKey={currentView} onBack={() => setCurrentView('dashboard')} />;
 
   return <div className="app-root"><Styles />{content}</div>;

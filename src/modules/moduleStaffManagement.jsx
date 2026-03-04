@@ -377,14 +377,13 @@ export default function ModuleStaffManagement({ onBack }) {
                   <th className="px-6 py-4">Department / Role</th>
                   <th className="px-6 py-4">Contact</th>
                   <th className="px-6 py-4 text-center">Status</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {staff
                   .filter((s) => s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.id.toLowerCase().includes(searchTerm.toLowerCase()))
                   .map((s) => (
-                    <tr key={s.id} className="hover:bg-blue-50/50 transition-colors group">
+                    <tr key={s.id} onClick={() => setEditModal({ isOpen: true, user: { ...s } })} className="hover:bg-blue-50/50 transition-colors group cursor-pointer">
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
                           <span className="font-bold text-slate-900 text-base">{s.name}</span>
@@ -407,24 +406,6 @@ export default function ModuleStaffManagement({ onBack }) {
                           {s.active && <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>}
                           {s.active ? "Active" : "Suspended"}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => setMsgModal({ isOpen: true, user: s })}
-                            className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white rounded-lg transition shadow-sm"
-                            title="Send Message"
-                          >
-                            <Mail size={16} />
-                          </button>
-                          <button
-                            onClick={() => setEditModal({ isOpen: true, user: { ...s } })}
-                            className="p-2 text-slate-600 bg-white border border-slate-200 hover:bg-slate-800 hover:text-white hover:border-slate-800 rounded-lg transition shadow-sm"
-                            title="Open Dossier"
-                          >
-                            <UserCog size={16} />
-                          </button>
-                        </div>
                       </td>
                     </tr>
                   ))}

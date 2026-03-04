@@ -109,7 +109,15 @@ const OSINTGenerator = ({ guest, onClose }) => {
 export default function ModuleGuestLogs({ onBack, user }) {
    const [selectedGuest, setSelectedGuest] = useState(null);
    const [showOSINT, setShowOSINT] = useState(false);
-   const daysInMonth = Array.from({ length: 31 }, (_, i) => i + 1);
+
+   // 7-day view state
+   const [startDayOffset, setStartDayOffset] = useState(0); // 0 offset = days 1-7
+   const MOCK_CURRENT_DAY = 5; // A mock 'today' for highlighting
+
+   const visibleDays = Array.from({ length: 7 }, (_, i) => i + 1 + startDayOffset);
+
+   const shiftLeft = () => setStartDayOffset(Math.max(0, startDayOffset - 7));
+   const shiftRight = () => setStartDayOffset(Math.min(24, startDayOffset + 7)); // Cap at max 31 days
 
    return (
       <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
@@ -133,7 +141,12 @@ export default function ModuleGuestLogs({ onBack, user }) {
             <div className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[500px]">
                <div className="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center">
                   <h2 className="font-bold flex items-center gap-2 text-slate-800"><Building className="text-blue-600" /> Booking Reservations</h2>
-                  <div className="flex gap-2">
+                  <div className="flex bg-slate-200 rounded-lg p-1 overflow-hidden">
+                     <button onClick={shiftLeft} disabled={startDayOffset === 0} className="p-1 hover:bg-white rounded transition disabled:opacity-30"><ChevronLeft size={16} className="text-slate-600" /></button>
+                     <div className="text-xs font-bold text-slate-600 px-3 py-1 flex items-center">Days {visibleDays[0]} - {visibleDays[6]}</div>
+                     <button onClick={shiftRight} disabled={startDayOffset >= 24} className="p-1 hover:bg-white rounded transition disabled:opacity-30"><ChevronLeft size={16} className="rotate-180 text-slate-600" /></button>
+                  </div>
+                  <div className="hidden md:flex gap-2">
                      {Object.keys(STATUS_COLORS).map(s => (
                         <div key={s} className="flex items-center gap-1 text-[10px] text-slate-500 font-bold uppercase"><div className={`w-2 h-2 rounded-full ${STATUS_COLORS[s]}`}></div>{s}</div>
                      ))}
@@ -145,9 +158,11 @@ export default function ModuleGuestLogs({ onBack, user }) {
                      {/* Timeline X-Axis */}
                      <div className="flex border-b border-slate-200 bg-slate-100">
                         <div className="w-40 shrink-0 p-3 text-xs font-bold text-slate-500 uppercase border-r border-slate-200">Accommodation</div>
-                        <div className="flex-1 flex">
-                           {daysInMonth.map(day => (
-                              <div key={day} className="flex-1 text-center py-2 text-[10px] font-bold text-slate-400 border-r border-slate-200 last:border-0">{day}</div>
+                        <div className="flex-1 flex relative">
+                           {visibleDays.map(day => (
+                              <div key={day} className={`flex-1 text-center py-2 text-[10px] font-bold border-r border-slate-200 last:border-0 transition-colors ${day === MOCK_CURRENT_DAY ? 'bg-slate-300/50 text-slate-800 ring-inset ring-2 ring-slate-400/20' : 'text-slate-400'}`}>
+                                 {day}
+                              </div>
                            ))}
                         </div>
                      </div>
@@ -162,29 +177,40 @@ export default function ModuleGuestLogs({ onBack, user }) {
                                  <span className="font-bold text-sm text-slate-800 truncate">{villa.name}</span>
                               </div>
 
-                              <div className="flex-1 relative bg-slate-50/30">
-                                 {/* Grid Lines */}
-                                 <div className="absolute inset-0 flex pointer-events-none">
-                                    {daysInMonth.map(d => (
-                                       <div key={'bg' + d} className="flex-1 border-r border-slate-200 border-dashed"></div>
-                                    ))}
-                                 </div>
+                              <div className="flex-1 relative bg-slate-50/30 flex">
+                                 {/* Grid Lines Highlight */}
+                                 {visibleDays.map(d => (
+                                    <div key={'bg' + d} className={`flex-1 border-r border-slate-200 border-dashed transition-colors ${d === MOCK_CURRENT_DAY ? 'bg-slate-200/40' : ''}`}></div>
+                                 ))}
 
                                  {/* Reservation Blocks */}
                                  {guests.map(guest => {
-                                    const leftPercent = ((guest.checkIn - 1) / 31) * 100;
-                                    const widthPercent = ((guest.checkOut - guest.checkIn) / 31) * 100;
+                                    // Check if guest is visible in current window
+                                    if (guest.checkOut <= visibleDays[0] || guest.checkIn >= visibleDays[6] + 1) return null;
+
+                                    const visibleCheckIn = Math.max(guest.checkIn, visibleDays[0]);
+                                    const visibleCheckOut = Math.min(guest.checkOut, visibleDays[6] + 1); // +1 because checkout is the end of the night
+
+                                    const leftPercent = ((visibleCheckIn - visibleDays[0]) / 7) * 100;
+                                    const widthPercent = ((visibleCheckOut - visibleCheckIn) / 7) * 100;
+
+                                    const isCutLeft = guest.checkIn < visibleDays[0];
+                                    const isCutRight = guest.checkOut > visibleDays[6] + 1;
+
                                     const bgClass = STATUS_COLORS[guest.status] || 'bg-slate-500';
 
                                     return (
                                        <div
                                           key={guest.id}
                                           onClick={() => setSelectedGuest(guest)}
-                                          className={`absolute top-1.5 bottom-1.5 ${bgClass} rounded-full text-white px-3 flex items-center cursor-pointer hover:brightness-110 shadow-sm transition z-20 overflow-hidden border border-white/20`}
+                                          className={`absolute top-1.5 bottom-1.5 ${bgClass} text-white px-3 flex items-center cursor-pointer hover:brightness-110 shadow-sm transition z-20 overflow-hidden border border-white/20
+                                             ${isCutLeft ? 'rounded-l-none border-l-0' : 'rounded-l-full'} 
+                                             ${isCutRight ? 'rounded-r-none border-r-0' : 'rounded-r-full'}
+                                          `}
                                           style={{ left: `${leftPercent}%`, width: `${widthPercent}%` }}
                                        >
                                           <span className="text-xs font-bold truncate drop-shadow-sm flex items-center gap-1.5">
-                                             <User size={12} /> {guest.name}
+                                             {!isCutLeft && <User size={12} />} {guest.name}
                                           </span>
                                        </div>
                                     );
